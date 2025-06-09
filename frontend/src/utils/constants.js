@@ -7,7 +7,7 @@ export const CLASSIC_ONLINE_SERVER =
 // export const CLASSIC_ONLINE_SERVER = "http://localhost:3143";
 // export const SPEED_LUDO_SERVER = "http://localhost:3144";
 
-export const CLIENT = "https://ludokingo.in";
+export const CLIENT = "https://superludo.in";
 
 export const API_HOST = HOST + "/api/v1";
 export const RESEND_TIMER = 120;

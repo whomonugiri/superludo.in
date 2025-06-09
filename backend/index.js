@@ -61,7 +61,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const corsOptions = {
-  origin: ["https://ludokingo.in", "https://admin.ludokingo.in"],
+  origin: ["https://superludo.in", "https://admin.superludo.in"],
   // origin: "*",
   credentials: true,
   methods: ["POST", "GET", "OPTIONS"],

@@ -1,7 +1,7 @@
-export const HOST = "https://server.ludokingo.in";
-export const SPEED_LUDO_SERVER = "https://speed-ludo-server.ludokingo.in";
+export const HOST = "https://server.superludo.in";
+export const SPEED_LUDO_SERVER = "https://speed-ludo-server.superludo.in";
 export const CLASSIC_ONLINE_SERVER =
-  "https://classic-online-server.ludokingo.in";
+  "https://classic-online-server.superludo.in";
 
 // export const HOST = "http://localhost:3142";
 // export const CLASSIC_ONLINE_SERVER = "http://localhost:3143";

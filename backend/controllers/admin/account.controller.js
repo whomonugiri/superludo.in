@@ -8,6 +8,7 @@ import {
   cancelMatchAndRefund,
   cancelMatchAndRefund2,
   checkGameStatus,
+  getFakeRunningMatches,
   refBonusManager,
 } from "../match.controller.js";
 import Log from "../../models/log.model.js";
@@ -2360,6 +2361,8 @@ export const updateGame = async (req, res) => {
     _log({
       message: req.admin.emailId + " updated  game data",
     });
+
+    await getFakeRunningMatches();
     return res.json({
       success: true,
       message: "info updated !",

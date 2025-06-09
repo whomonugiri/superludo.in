@@ -1,6 +1,6 @@
 {
-  "short_name": "Ludo Kingo",
-  "name": "Ludo Kingo",
+  "short_name": "Super Ludo",
+  "name": "Super Ludo",
   "icons": [
     {
       "src": "assets/applogo.png",
@@ -10,7 +10,7 @@
   ],
   "id": "/?source=pwa",
   "start_url": ".",
-  "description": "Install Ludo Kingo App On Your Smartphone",
+  "description": "Install Super Ludo App On Your Smartphone",
   "background_color": "#0579a9",
   "display": "standalone",
   "scope": "/",

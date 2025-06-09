@@ -62,7 +62,7 @@ export const _config = async () => {
   const config = await Config.find().lean();
   const _setting = config[0];
 
-  _setting.DEMO = true;
+  _setting.DEMO = false;
   _setting.DEMO_MSG =
     "you are not allowed, to perform this operation. contact the developer at +917669006847 on whatsapp";
   return _setting;

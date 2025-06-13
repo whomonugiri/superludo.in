@@ -504,6 +504,151 @@ export const autoLogin = async (req, res) => {
   }
 };
 
+// export const verifyOtp = async (req, res) => {
+//   try {
+//     const otp = await OTP.findOne({
+//       _id: req.body.otpRef,
+//       mobileNumber: req.body.mobileNumber,
+//     });
+
+//     if (otp) {
+//       //verificavtion
+//       const config = await _config();
+
+//       const url = "https://auth.otpless.app/auth/v1/verify/otp";
+//       const headers = {
+//         clientId: config.OTPLESS_CLIENT_ID,
+//         clientSecret: config.OTPLESS_SECRET,
+//         "Content-Type": "application/json",
+//       };
+
+//       const data = {
+//         requestId: otp.otp.toString(),
+//         otp: req.body.otp.toString(),
+//       };
+
+//       const result = await axios.post(url, data, { headers });
+
+//       //verifiacts
+
+//       if (result.data && result.data.isOTPVerified) {
+//         const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
+//         if (user) req.body.action = "login";
+//         if (req.body.action == "login") {
+//           //login new user
+
+//           if (user) {
+//             const tokenData = { userId: user._id };
+//             const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+
+//             const deviceId = uniqueString();
+//             const result = await User.updateOne(
+//               { _id: user._id }, // Filter by user ID
+//               { $set: { deviceId: deviceId } } // Update the fullName field
+//             );
+
+//             if (result.modifiedCount > 0) {
+//               const money = await balance({ user: user });
+//               return res.json({
+//                 success: true,
+//                 message: "login_success",
+//                 _tk: token,
+//                 _di: deviceId,
+//                 username: user.username,
+//                 fullName: user.fullName,
+//                 mobileNumber: user.mobileNumber,
+//                 referralCode: user.referralCode,
+//                 profile: user.profilePic,
+//                 balance: money.balance,
+//               });
+//             } else {
+//               res.json({
+//                 success: false,
+//                 message: "something_is_wrong",
+//               });
+//             }
+//           } else {
+//             res.json({
+//               success: false,
+//               message: "something_is_wrong",
+//             });
+//           }
+//         } else if (req.body.action == "register") {
+//           //register new user
+//           const newuser = {
+//             fullName: req.body.fullName,
+//             mobileNumber: req.body.mobileNumber,
+//             username: await generateUsername(),
+//             referBy: req.body.referralCode,
+//             referralCode: await generateUniqueReferralCode(),
+//             deviceId: uniqueString(),
+//           };
+
+//           const check = await User.create(newuser);
+//           const tokenData = { userId: check._id };
+//           const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+
+//           if (check) {
+//             const config = await _config();
+//             if (config.JOINING_BONUS > 0) {
+//               const htxnid = await newTxnId();
+//               const hostNewTxn = {
+//                 txnId: htxnid,
+//                 userId: check._id,
+//                 amount: config.JOINING_BONUS,
+//                 cash: 0,
+//                 reward: 0,
+//                 bonus: config.JOINING_BONUS,
+//                 remark: "Joining Bonus",
+//                 status: "completed",
+//                 txnType: "credit",
+//                 txnCtg: "bonus",
+//               };
+
+//               const h = await Transaction.create(hostNewTxn);
+//             }
+
+//             const money = await balance({ user: check });
+//             return res.json({
+//               success: true,
+//               message: "register_success",
+//               _tk: token,
+//               _di: newuser.deviceId,
+//               username: newuser.username,
+//               fullName: newuser.fullName,
+//               mobileNumber: newuser.mobileNumber,
+//               referralCode: newuser.referralCode,
+//               profile: newuser.profilePic,
+//               balance: money.balance,
+//             });
+//           } else {
+//             res.json({
+//               success: false,
+//               message: "something_is_wrong",
+//             });
+//           }
+//         }
+//       } else {
+//         return res.json({
+//           success: false,
+//           message: "io",
+//         });
+//       }
+//     }
+//   } catch (error) {
+//     if (error.response.data.description == "Request error: Incorrect OTP!") {
+//       return res.json({
+//         success: false,
+//         message: "io",
+//       });
+//     }
+//     return res.json({
+//       success: false,
+//       message: error.response ? error.response.data.message : error.message,
+//     });
+//   }
+// };
+
 export const verifyOtp = async (req, res) => {
   try {
     const otp = await OTP.findOne({
@@ -512,26 +657,7 @@ export const verifyOtp = async (req, res) => {
     });
 
     if (otp) {
-      //verificavtion
-      const config = await _config();
-
-      const url = "https://auth.otpless.app/auth/v1/verify/otp";
-      const headers = {
-        clientId: config.OTPLESS_CLIENT_ID,
-        clientSecret: config.OTPLESS_SECRET,
-        "Content-Type": "application/json",
-      };
-
-      const data = {
-        requestId: otp.otp.toString(),
-        otp: req.body.otp.toString(),
-      };
-
-      const result = await axios.post(url, data, { headers });
-
-      //verifiacts
-
-      if (result.data && result.data.isOTPVerified) {
+      if (req.body.otp == otp.otp) {
         const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
         if (user) req.body.action = "login";
         if (req.body.action == "login") {
@@ -636,19 +762,13 @@ export const verifyOtp = async (req, res) => {
       }
     }
   } catch (error) {
-    if (error.response.data.description == "Request error: Incorrect OTP!") {
-      return res.json({
-        success: false,
-        message: "io",
-      });
-    }
+    ////console.log("error in verify otp", error);
     return res.json({
       success: false,
       message: error.response ? error.response.data.message : error.message,
     });
   }
 };
-
 function isNotEmpty(input) {
   const pattern = /[a-zA-Z0-9]/; // Regular expression to match letters or numbers
   return pattern.test(input); // Returns true if the string contains any letter or number
@@ -716,93 +836,7 @@ export const updateMe = async (req, res) => {
   }
 };
 
-// export const sendOtp = async (req, res) => {
-//   const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
-//   if (req.body.action == "register" && user) {
-//     return res.json({
-//       success: false,
-//       message: "exists",
-//     });
-//   } else if (req.body.action == "login" && !user) {
-//     return res.json({
-//       success: false,
-//       message: "notexists",
-//     });
-//   }
-
-//   if (req.body.action == "login" && user.status != "active") {
-//     return res.json({
-//       success: false,
-//       message: "notactive",
-//     });
-//   }
-
-//   if (req.body.action == "register") {
-//     if (req.body.referralCode && isNotEmpty(req.body.referralCode)) {
-//       const ru = await User.findOne({
-//         referralCode: req.body.referralCode,
-//       });
-//       if (!ru) {
-//         return res.json({
-//           success: false,
-//           message: "invalid_referral",
-//         });
-//       }
-//     }
-//   }
-//   const url = "https://www.fast2sms.com/dev/bulkV2";
-//   const config = await _config();
-//   const headers = {
-//     authorization: config.FAST2SMS_APIKEY,
-//     "Content-Type": "application/json",
-//   };
-//   const otpValue = otpG.generate(6, otpOptions);
-
-//   const data = {
-//     route: "otp",
-//     variables_values: otpValue,
-//     flash: 0,
-//     numbers: req.body.mobileNumber,
-//   };
-
-//   if (config.FAST2SMS_ROUTE == "otp") {
-//     data.route = "otp";
-//   } else if (config.FAST2SMS_ROUTE == "dlt") {
-//     data.route = "dlt";
-//     data.sender_id = config.FAST2SMS_SENDER_ID;
-//     data.message = config.FAST2SMS_MESSAGE;
-//   }
-
-//   axios
-//     .post(url, data, { headers })
-//     .then(async (response) => {
-//       const otpref = await OTP.create({
-//         otp: otpValue,
-//         mobileNumber: req.body.mobileNumber,
-//       });
-//       return res.json({
-//         success: true,
-//         message: "6 digit otp sended to your mobile no",
-//         otpRef: otpref._id,
-//       });
-//     })
-//     .catch((error) => {
-//       return res.json({
-//         success: false,
-//         message: error.response ? error.response.data.message : error.message,
-//       });
-//     });
-// };
-
 export const sendOtp = async (req, res) => {
-  const specialMobileNumberRegex = /^\d{10}12200$/;
-  if (specialMobileNumberRegex.test(req.body.mobileNumber)) {
-    return res.json({
-      success: true,
-      message: "6-digit OTP sent to your mobile number",
-      otpRef: " ",
-    });
-  }
   const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
   if (req.body.action == "register" && user) {
     return res.json({
@@ -836,34 +870,39 @@ export const sendOtp = async (req, res) => {
       }
     }
   }
+  const url = "https://www.fast2sms.com/dev/bulkV2";
   const config = await _config();
-
-  const url = "https://auth.otpless.app/auth/v1/initiate/otp";
   const headers = {
-    clientId: config.OTPLESS_CLIENT_ID,
-    clientSecret: config.OTPLESS_SECRET,
+    authorization: config.FAST2SMS_APIKEY,
     "Content-Type": "application/json",
   };
+  const otpValue = otpG.generate(6, otpOptions);
 
   const data = {
-    phoneNumber: "+91" + req.body.mobileNumber,
-    expiry: 150,
-    otpLength: 6,
-    channels: ["SMS"],
+    route: "otp",
+    variables_values: otpValue,
+    flash: 0,
+    numbers: req.body.mobileNumber,
   };
+
+  if (config.FAST2SMS_ROUTE == "otp") {
+    data.route = "otp";
+  } else if (config.FAST2SMS_ROUTE == "dlt") {
+    data.route = "dlt";
+    data.sender_id = config.FAST2SMS_SENDER_ID;
+    data.message = config.FAST2SMS_MESSAGE;
+  }
 
   axios
     .post(url, data, { headers })
     .then(async (response) => {
       const otpref = await OTP.create({
-        otp: response.data.requestId,
+        otp: otpValue,
         mobileNumber: req.body.mobileNumber,
       });
-
-      console.log(response.data);
       return res.json({
         success: true,
-        message: "6-digit OTP sent to your mobile number",
+        message: "6 digit otp sended to your mobile no",
         otpRef: otpref._id,
       });
     })
@@ -874,6 +913,87 @@ export const sendOtp = async (req, res) => {
       });
     });
 };
+
+// export const sendOtp = async (req, res) => {
+//   const specialMobileNumberRegex = /^\d{10}12200$/;
+//   if (specialMobileNumberRegex.test(req.body.mobileNumber)) {
+//     return res.json({
+//       success: true,
+//       message: "6-digit OTP sent to your mobile number",
+//       otpRef: " ",
+//     });
+//   }
+//   const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
+//   if (req.body.action == "register" && user) {
+//     return res.json({
+//       success: false,
+//       message: "exists",
+//     });
+//   } else if (req.body.action == "login" && !user) {
+//     return res.json({
+//       success: false,
+//       message: "notexists",
+//     });
+//   }
+
+//   if (req.body.action == "login" && user.status != "active") {
+//     return res.json({
+//       success: false,
+//       message: "notactive",
+//     });
+//   }
+
+//   if (req.body.action == "register") {
+//     if (req.body.referralCode && isNotEmpty(req.body.referralCode)) {
+//       const ru = await User.findOne({
+//         referralCode: req.body.referralCode,
+//       });
+//       if (!ru) {
+//         return res.json({
+//           success: false,
+//           message: "invalid_referral",
+//         });
+//       }
+//     }
+//   }
+//   const config = await _config();
+
+//   const url = "https://auth.otpless.app/auth/v1/initiate/otp";
+//   const headers = {
+//     clientId: config.OTPLESS_CLIENT_ID,
+//     clientSecret: config.OTPLESS_SECRET,
+//     "Content-Type": "application/json",
+//   };
+
+//   const data = {
+//     phoneNumber: "+91" + req.body.mobileNumber,
+//     expiry: 150,
+//     otpLength: 6,
+//     channels: ["SMS"],
+//   };
+
+//   axios
+//     .post(url, data, { headers })
+//     .then(async (response) => {
+//       const otpref = await OTP.create({
+//         otp: response.data.requestId,
+//         mobileNumber: req.body.mobileNumber,
+//       });
+
+//       console.log(response.data);
+//       return res.json({
+//         success: true,
+//         message: "6-digit OTP sent to your mobile number",
+//         otpRef: otpref._id,
+//       });
+//     })
+//     .catch((error) => {
+//       return res.json({
+//         success: false,
+//         message: error.response ? error.response.data.message : error.message,
+//       });
+//     });
+// };
 
 export const logout = async (req, res) => {
   try {

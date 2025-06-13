@@ -30,10 +30,10 @@ export const Configuration = () => {
                 key == "updatedAt" ||
                 key == "_id" ||
                 key == "PAYTM_PAYMENT_VERIFICATION_URL" ||
-                key == "FAST2SMS_APIKEY" ||
-                key == "FAST2SMS_ROUTE" ||
-                key == "FAST2SMS_SENDER_ID" ||
-                key == "FAST2SMS_MESSAGE" ||
+                // key == "FAST2SMS_APIKEY" ||
+                // key == "FAST2SMS_ROUTE" ||
+                // key == "FAST2SMS_SENDER_ID" ||
+                // key == "FAST2SMS_MESSAGE" ||
                 key == "PAYTM_CHECKSUM"
               )
                 return;

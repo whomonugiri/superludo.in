@@ -39,14 +39,15 @@ const Homepage = () => {
   };
 
   useEffect(() => {
-    fetchGames();
-    const el = document.querySelector("#carouselExample");
-    if (el && window.bootstrap) {
-      new window.bootstrap.Carousel(el, {
-        interval: 3000,
-        ride: "carousel",
-      });
-    }
+    const interval = setInterval(() => {
+      const btn = document.getElementById("nb");
+      if (btn) {
+        btn.click();
+      }
+    }, 3000);
+
+    // 🔁 Clean up the interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -113,11 +114,7 @@ const Homepage = () => {
 
         {/* Auto-Sliding Image Carousel Below the Games Section */}
         <div className="mt-1">
-          <div
-            id="carouselExample"
-            class="carousel slide"
-            data-bs-ride="carousel"
-          >
+          <div id="carouselExample" className="carousel slide">
             <div className="carousel-inner">
               <div className="carousel-item active">
                 <a
@@ -204,6 +201,7 @@ const Homepage = () => {
               type="button"
               data-bs-target="#carouselExample"
               data-bs-slide="next"
+              id="nb"
             >
               <span
                 className="carousel-control-next-icon"

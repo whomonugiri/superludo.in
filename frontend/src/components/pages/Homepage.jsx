@@ -113,7 +113,11 @@ const Homepage = () => {
 
         {/* Auto-Sliding Image Carousel Below the Games Section */}
         <div className="mt-1">
-          <div id="carouselExample" className="carousel slide">
+          <div
+            id="carouselExample"
+            class="carousel slide"
+            data-bs-ride="carousel"
+          >
             <div className="carousel-inner">
               <div className="carousel-item active">
                 <a

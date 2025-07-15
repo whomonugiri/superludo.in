@@ -104,7 +104,7 @@ const Homepage = () => {
             })}
 
           {/* //xox */}
-          <div className={`col-6 p-1 col-12`}>
+          <div className={`col-6 p-1`}>
             <Link to={""} className={`text-decoration-none`}>
               <div className="">
                 <div
@@ -117,7 +117,27 @@ const Homepage = () => {
                 </div>
 
                 <img
-                  src={"/assets/snake.png" + "?v"}
+                  src={"/assets/quick.png" + "?v"}
+                  className={`w-100 rounded border border-warning border-3  text-dark opacity-50`}
+                />
+              </div>
+            </Link>
+          </div>
+
+          <div className={`col-6 p-1`}>
+            <Link to={""} className={`text-decoration-none`}>
+              <div className="">
+                <div
+                  style={{ fontSize: "10px" }}
+                  className={`mb-1 text-danger animate__slow animate__animated text-dark animate__flash animate__infinite text-decoration-none`}
+                >
+                  <div>
+                    <FaRegCircleDot /> Coming Soon
+                  </div>
+                </div>
+
+                <img
+                  src={"/assets/quick2.png" + "?v"}
                   className={`w-100 rounded border border-warning border-3  text-dark opacity-50`}
                 />
               </div>

@@ -121,7 +121,11 @@ const Sidebar = () => {
           />
 
           {/* New Language Button */}
-          <Button5 action={toggleLanguage} text={t("language_btn")} icon={<MdOutlineVerified />} />
+          <Button5
+            action={toggleLanguage}
+            text={t("language_btn")}
+            icon={<MdOutlineVerified />}
+          />
 
           {/* sidebar buttons ends */}
 

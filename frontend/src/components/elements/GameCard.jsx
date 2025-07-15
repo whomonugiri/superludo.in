@@ -29,7 +29,7 @@ export const GameCard = (props) => {
             </div>
 
             <img
-              src={props.banner}
+              src={props.banner + "?v"}
               className={`w-100 rounded border border-warning border-3 ${
                 props.status == "coming_soon" ? " text-dark opacity-50" : ""
               }`}

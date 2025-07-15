@@ -5,6 +5,11 @@ import {
   HiUser,
   HiUserPlus,
 } from "react-icons/hi2";
+import {
+  FaFileLines,
+  FaMoneyBillTransfer,
+  FaRankingStar,
+} from "react-icons/fa6";
 import { Button4 } from "../elements/Button4";
 import { useTranslation } from "react-i18next";
 import { BiLogIn } from "react-icons/bi";
@@ -69,9 +74,9 @@ const Footer = () => {
           {/* Show Withdraw button if authenticated */}
           {isAuth && (
             <Button4
-              path="/withdraw"
-              text={t("withdraw_btn")}
-              icon={<GiTakeMyMoney />} // Withdraw icon
+              path="/leaderboard"
+              text={t("sidebar_leaderboard")}
+              icon={<FaRankingStar />} // Withdraw icon
             />
           )}
 

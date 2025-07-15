@@ -12,6 +12,7 @@ import { motion } from "motion/react";
 import { useSelector } from "react-redux";
 import AudioRecorder from "../elements/AudioRecorder";
 import { FaRegCircleDot } from "react-icons/fa6";
+import { Link } from "react-router";
 
 const Homepage = () => {
   const { t, i18n } = useTranslation();
@@ -102,15 +103,27 @@ const Homepage = () => {
               );
             })}
 
-          <GameCard
-            game={"SNAKE"}
-            key={"kSNAKE"}
-            title={"SNALKE"}
-            path={""}
-            banner={"assets/snake.png"}
-            status={"coming_soon"}
-            full={true}
-          />
+          {/* //xox */}
+          <div className={`col-6 p-1 col-12`}>
+            <Link to={""} className={`text-decoration-none`}>
+              <div className="">
+                <div
+                  style={{ fontSize: "10px" }}
+                  className={`mb-1 text-danger animate__slow animate__animated text-dark animate__flash animate__infinite text-decoration-none`}
+                >
+                  <div>
+                    <FaRegCircleDot /> Coming Soon
+                  </div>
+                </div>
+
+                <img
+                  src={"/assets/snake.png" + "?v"}
+                  className={`w-100 rounded border border-warning border-3  text-dark opacity-50`}
+                />
+              </div>
+            </Link>
+          </div>
+          {/* /xox */}
         </div>
 
         {/* Auto-Sliding Image Carousel Below the Games Section */}

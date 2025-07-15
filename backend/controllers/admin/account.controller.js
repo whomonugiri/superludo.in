@@ -282,6 +282,52 @@ export const updateUserStatus = async (req, res) => {
   }
 };
 
+export const updateUserType = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const _su = req.body._su;
+
+    const updatedUser = await User.updateOne(
+      {
+        _id: userId,
+      }, // Filter by user ID
+      {
+        $set: {
+          _su: _su,
+          updatedAt: new Date(),
+        },
+      } // Update the fullName field
+    );
+
+    if (!updatedUser.modifiedCount) {
+      return res.json({
+        success: false,
+        message: "user not found",
+      });
+    }
+
+    const u = await User.findOne({ _id: userId });
+    _log({
+      message:
+        req.admin.emailId +
+        " updated superuser status of " +
+        u.fullName +
+        " (" +
+        u.mobileNumber +
+        ") to " +
+        _su,
+    });
+    return res.json({
+      success: true,
+      message: "user status updated",
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
 export const fetchUser = async (req, res) => {
   try {
     let cond = req.body.cond;

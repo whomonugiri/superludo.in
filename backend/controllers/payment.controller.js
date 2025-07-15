@@ -173,7 +173,7 @@ export const submitWithdrawReq = async (req, res) => {
     }).sort({ createdAt: -1 }); // Get the latest withdrawal transaction
 
     if (ptxn) {
-      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000); // Calculate 6 hours ago
+      const sixHoursAgo = new Date(Date.now() - 30 * 60 * 1000); // Calculate 6 hours ago
 
       if (ptxn.createdAt < sixHoursAgo) {
         // //console.log("Last withdrawal request was submitted more than 6 hours ago.");

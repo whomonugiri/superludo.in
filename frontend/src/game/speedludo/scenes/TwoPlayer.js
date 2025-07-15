@@ -13,6 +13,7 @@ import { LifeAction } from "../actions/LifeAction";
 import { DrawFinish } from "../actions/DrawFinish";
 
 export class TwoPlayer extends Scene {
+  swaped = false;
   currentDice;
   currentColor;
   road = {
@@ -186,6 +187,8 @@ export class TwoPlayer extends Scene {
     this.dones = this.registry.get("dones");
     this.deads = this.registry.get("deads");
     this._su = this.registry.get("_su");
+    this.prize = this.registry.get("prize");
+
     // this._su = true;
 
     AssetsHandler(this);

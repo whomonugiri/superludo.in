@@ -40,7 +40,7 @@
   "logout_success": "आप सफलतापूर्वक लॉगआउट हो गए हैं।",
   "login_btn": "लॉगिन",
   "register_btn": "रजिस्टर",
-  "home_btn": "होम",
+  "home_btn": "प्ले",
   "profile_btn": "प्रोफाइल",
   "refer_btn": "रेफर",
   "language_btn": "भाषा",
@@ -247,5 +247,7 @@
   "speed_ludo_label": "स्पीड लूडो",
   "waiting": "प्रतीक्षा करें",
   "already_join_req": "आप पहले से ही एक Waiting Room में शामिल हैं",
-  "kyc_verified": "आपका केवाईसी सफलतापूर्वक सत्यापित हो गया है"
+  "kyc_verified": "आपका केवाईसी सफलतापूर्वक सत्यापित हो गया है",
+  "deposit_btn": "पैसे जोड़ें",
+  "withdraw_btn": "पैसे निकालें"
 }

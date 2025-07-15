@@ -14,6 +14,8 @@ export const getPlayersLocation = (room) => {
         let pd = {
           index: index,
           color: color.color,
+          currentPos: pl.currentPos,
+          status: pl.status,
           x: 0,
           y: 0,
           score: pl.score,
@@ -561,9 +563,11 @@ export const checkWinningStatus = (room, res, colors) => {
       greenteam.life < 0 ||
       greenwinner > 3 ||
       blueteam.life < 0 ||
-      currentTime >= room.expectedEndingTime
+      currentTime >= room.expectedEndingTime ||
+      greenteam.exit ||
+      blueteam.exit
     ) {
-      if (greenteam.life < 0) {
+      if (greenteam.life < 0 || greenteam.exit) {
         ob.sc = true;
         ob.winnerColor = "blue";
         ob.winnerScore = blueteam.score;
@@ -571,7 +575,7 @@ export const checkWinningStatus = (room, res, colors) => {
         ob.looserColor = "green";
         ob.looserScore = greenteam.score;
         ob.looserId = greenteam.userId;
-      } else if (blueteam.life < 0) {
+      } else if (blueteam.life < 0 || blueteam.exit) {
         ob.sc = true;
 
         ob.winnerColor = "green";

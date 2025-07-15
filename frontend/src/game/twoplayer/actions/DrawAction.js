@@ -3,7 +3,7 @@ import { ReadyOption } from "../helpers/ReadyOption";
 
 export const DrawAction = (scene) => {
   scene.bluePic = scene.add
-    .image(311, 1066, scene.playerInfo.blue.profile.replace(/\.png$/, ""))
+    .image(311, 1066, scene.playerInfo.blue.profile.match(/^[^.]*/)[0])
     .setScale(1.1);
 
   scene.modeText = scene.add.text(
@@ -40,7 +40,7 @@ export const DrawAction = (scene) => {
     clearInterval(scene.spinAnimRef);
     scene.greenPic.setVisible(false);
     scene.greenPic = scene.add
-      .sprite(772, 1066, scene.playerInfo.green.profile.replace(/\.png$/, ""))
+      .sprite(772, 1066, scene.playerInfo.green.profile.match(/^[^.]*/)[0])
       .setScale(1.1);
 
     scene.readyBtn = scene.add.sprite(550, 1500, "ready").setScale(0.8);

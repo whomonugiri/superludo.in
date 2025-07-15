@@ -1,9 +1,17 @@
 export const PlayerBorderAction = (scene) => {
-  let path = {
-    blue: { x: 72, y: 1794 },
-    green: { x: 1006, y: 1794 },
-  };
+  let path;
 
+  if (scene.color == "green") {
+    path = {
+      blue: { x: 1006, y: 1794 },
+      green: { x: 72, y: 1794 },
+    };
+  } else {
+    path = {
+      blue: { x: 72, y: 1794 },
+      green: { x: 1006, y: 1794 },
+    };
+  }
   // if (scene.color == "green") {
   //   path.blue.y = 127;
 

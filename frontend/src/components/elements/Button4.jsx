@@ -4,7 +4,7 @@ import { NavLink } from "react-router";
 export const Button4 = (props) => {
   return (
     <>
-      <NavLink to={props.path} className="text-decoration-none text-dark">
+      <NavLink to={props.path} className="text-decoration-none text-secondary">
         <div
           className="d-flex flex-column justify-content-center"
           style={{ lineHeight: "10px" }}

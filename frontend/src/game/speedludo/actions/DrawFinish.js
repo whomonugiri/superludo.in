@@ -9,13 +9,13 @@ export const DrawFinish = (scene, winner, looser) => {
     scene.fireworksSound.play();
 
     if (scene.color == "blue" || true) {
-      scene.add.image(540, 960, "black").setDepth(13);
-      scene.add.image(540, 1470, "finish").setDepth(14);
+      scene.add.image(540, 960, "black").setDepth(999999999);
+      scene.add.image(540, 1470, "finish").setDepth(999999999);
 
       scene.playbtn = scene.add
         .image(540, 1830, "play")
         .setScale(0.8)
-        .setDepth(15);
+        .setDepth(999999999);
       scene.playbtn.setInteractive();
       scene.playbtn.on("pointerdown", () => {
         window.dispatchEvent(
@@ -36,7 +36,7 @@ export const DrawFinish = (scene, winner, looser) => {
             padding: { x: 0, y: 0 }, // Optional padding
           }
         )
-        .setDepth(15);
+        .setDepth(999999999);
 
       scene.winner.setShadow(1, 1, "#000000", 10, true, true);
 
@@ -53,7 +53,7 @@ export const DrawFinish = (scene, winner, looser) => {
             padding: { x: 0, y: 0 }, // Optional padding
           }
         )
-        .setDepth(15);
+        .setDepth(999999999);
 
       scene.looser.setShadow(1, 1, "#000000", 10, true, true);
     } else {
@@ -110,13 +110,13 @@ export const DrawFinish = (scene, winner, looser) => {
     }
   } else {
     if (scene.color == "blue") {
-      scene.add.image(540, 960, "black").setDepth(13);
-      scene.add.image(540, 1470, "finish3").setDepth(14);
+      scene.add.image(540, 960, "black").setDepth(999999999);
+      scene.add.image(540, 1470, "finish3").setDepth(999999999);
 
       scene.playbtn = scene.add
         .image(540, 1830, "play")
         .setScale(0.8)
-        .setDepth(15);
+        .setDepth(999999999);
       scene.playbtn.setInteractive();
       scene.playbtn.on("pointerdown", () => {
         window.dispatchEvent(
@@ -137,7 +137,7 @@ export const DrawFinish = (scene, winner, looser) => {
             padding: { x: 0, y: 0 }, // Optional padding
           }
         )
-        .setDepth(15);
+        .setDepth(999999999);
 
       scene.winner.setShadow(1, 1, "#000000", 10, true, true);
 
@@ -154,17 +154,17 @@ export const DrawFinish = (scene, winner, looser) => {
             padding: { x: 0, y: 0 }, // Optional padding
           }
         )
-        .setDepth(15);
+        .setDepth(999999999);
 
       scene.looser.setShadow(1, 1, "#000000", 10, true, true);
     } else {
-      scene.add.image(540, 960, "black").setDepth(13);
-      scene.add.image(540, 450, "finish3").setDepth(14).setAngle(180);
+      scene.add.image(540, 960, "black").setDepth(999999999);
+      scene.add.image(540, 450, "finish3").setDepth(999999999).setAngle(180);
 
       scene.playbtn = scene.add
         .image(540, 90, "play")
         .setScale(0.8)
-        .setDepth(15)
+        .setDepth(999999999)
         .setAngle(180);
       scene.playbtn.setInteractive();
       scene.playbtn.on("pointerdown", () => {
@@ -214,6 +214,7 @@ export const DrawFinish = (scene, winner, looser) => {
   localStorage.removeItem("room_code");
   localStorage.removeItem("color");
   localStorage.removeItem("gameUid");
+  clearInterval(scene.clockTimerRef);
 
   scene.gameStatus = 2;
   setTimeout(() => {

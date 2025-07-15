@@ -34,6 +34,7 @@ import {
   updateInfo,
   updateResult,
   updateUserStatus,
+  updateUserType,
   updateWithdrawStatus,
   verifyLogin,
 } from "../controllers/admin/account.controller.js";
@@ -74,6 +75,8 @@ router.route("/fetchOnlineMatch").post(auth, fetchOnlineMatch);
 router.route("/fetchSpeedMatch").post(auth, fetchSpeedMatch);
 
 router.route("/updateUserStatus").post(auth, updateUserStatus);
+router.route("/updateUserType").post(auth, updateUserType);
+
 router.route("/updateResultApi").post(auth, submitResultApi);
 router.route("/updateResult").post(auth, updateResult);
 router.route("/updateWithdrawStatus").post(auth, updateWithdrawStatus);

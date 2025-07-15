@@ -43,6 +43,9 @@ export const GetData = (scene) => {
     scene.dones = res.dones;
     scene.deads = res.deads;
     scene._su = res._su;
+    scene.prize = res.prize;
+
+    scene.registry.set("prize", scene.prize);
 
     scene.registry.set("_su", scene._su);
     scene.registry.set("deads", scene.deads);
@@ -98,7 +101,9 @@ export const GetData = (scene) => {
     scene.dones = res.dones;
     scene.deads = res.deads;
     scene._su = res._su;
+    scene.prize = res.prize;
 
+    scene.registry.set("prize", scene.prize);
     scene.registry.set("_su", scene._su);
     scene.registry.set("deads", scene.deads);
     scene.registry.set("dones", scene.dones);

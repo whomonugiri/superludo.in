@@ -15,7 +15,7 @@ export const UpdateGreen = (scene) => {
 
     clearInterval(scene.spinAnimRef);
     scene.greenPic = scene.add
-      .sprite(772, 1066, res.greenInfo.profile.replace(/\.png$/, ""))
+      .sprite(772, 1066, res.greenInfo.profile.match(/^[^.]*/)[0])
       .setScale(1.1);
     setTimeout(() => {
       scene.scene.start("Game");

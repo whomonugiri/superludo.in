@@ -154,7 +154,7 @@ export const ActionHandler = (scene) => {
   scene.tweens.add({
     targets: scene.arrow,
     y: "+=45",
-    duration: 240,
+    duration: 170,
     ease: "Linear",
     repeat: -1,
     yoyo: true,
@@ -164,7 +164,7 @@ export const ActionHandler = (scene) => {
     scene.tweens.add({
       targets: target,
       alpha: 0,
-      duration: 300,
+      duration: 200,
       ease: "Linear",
       yoyo: true,
       repeat: -1,
@@ -200,11 +200,11 @@ export const ActionHandler = (scene) => {
       goti.originalY = step.y;
       scene.tweens.add({
         targets: goti,
-        scaleX: { value: 1.35, duration: 130, yoyo: true },
-        scaleY: { value: 1.35, duration: 130, yoyo: true },
+        scaleX: { value: 1.35, duration: 60, yoyo: true },
+        scaleY: { value: 1.35, duration: 60, yoyo: true },
         x: step.x,
         y: step.y,
-        duration: 260,
+        duration: 120,
         ease: "Quad.easeOut",
         onComplete: () => {
           goti.setScale(1);
@@ -213,7 +213,7 @@ export const ActionHandler = (scene) => {
       });
 
       stepCount++;
-    }, 300);
+    }, 130);
   });
 
   scene.socket.on("_goti_", (res) => {
@@ -231,7 +231,7 @@ export const ActionHandler = (scene) => {
       targets: goti,
       x,
       y,
-      duration: 250,
+      duration: 120,
       ease: "Linear",
       onComplete: () => {
         goti.setScale(1);
@@ -247,7 +247,7 @@ export const ActionHandler = (scene) => {
     scene.progressBar.setVisible(false);
 
     let currentPos = res.currentPos - 1;
-    let animTime = 50;
+    let animTime = 25;
     scene.playerIsMoving = true;
 
     scene._killref = setInterval(() => {
@@ -258,7 +258,7 @@ export const ActionHandler = (scene) => {
       }
 
       const step = scene.road[res.color][currentPos];
-      animTime = currentPos < 0 ? 130 : 50;
+      animTime = currentPos < 0 ? 50 : 25;
 
       goti.originalX = step.x;
       goti.originalY = step.y;

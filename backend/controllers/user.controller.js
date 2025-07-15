@@ -504,271 +504,134 @@ export const autoLogin = async (req, res) => {
   }
 };
 
-// export const verifyOtp = async (req, res) => {
-//   try {
-//     const otp = await OTP.findOne({
-//       _id: req.body.otpRef,
-//       mobileNumber: req.body.mobileNumber,
-//     });
-
-//     if (otp) {
-//       //verificavtion
-//       const config = await _config();
-
-//       const url = "https://auth.otpless.app/auth/v1/verify/otp";
-//       const headers = {
-//         clientId: config.OTPLESS_CLIENT_ID,
-//         clientSecret: config.OTPLESS_SECRET,
-//         "Content-Type": "application/json",
-//       };
-
-//       const data = {
-//         requestId: otp.otp.toString(),
-//         otp: req.body.otp.toString(),
-//       };
-
-//       const result = await axios.post(url, data, { headers });
-
-//       //verifiacts
-
-//       if (result.data && result.data.isOTPVerified) {
-//         const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
-//         if (user) req.body.action = "login";
-//         if (req.body.action == "login") {
-//           //login new user
-
-//           if (user) {
-//             const tokenData = { userId: user._id };
-//             const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
-
-//             const deviceId = uniqueString();
-//             const result = await User.updateOne(
-//               { _id: user._id }, // Filter by user ID
-//               { $set: { deviceId: deviceId } } // Update the fullName field
-//             );
-
-//             if (result.modifiedCount > 0) {
-//               const money = await balance({ user: user });
-//               return res.json({
-//                 success: true,
-//                 message: "login_success",
-//                 _tk: token,
-//                 _di: deviceId,
-//                 username: user.username,
-//                 fullName: user.fullName,
-//                 mobileNumber: user.mobileNumber,
-//                 referralCode: user.referralCode,
-//                 profile: user.profilePic,
-//                 balance: money.balance,
-//               });
-//             } else {
-//               res.json({
-//                 success: false,
-//                 message: "something_is_wrong",
-//               });
-//             }
-//           } else {
-//             res.json({
-//               success: false,
-//               message: "something_is_wrong",
-//             });
-//           }
-//         } else if (req.body.action == "register") {
-//           //register new user
-//           const newuser = {
-//             fullName: req.body.fullName,
-//             mobileNumber: req.body.mobileNumber,
-//             username: await generateUsername(),
-//             referBy: req.body.referralCode,
-//             referralCode: await generateUniqueReferralCode(),
-//             deviceId: uniqueString(),
-//           };
-
-//           const check = await User.create(newuser);
-//           const tokenData = { userId: check._id };
-//           const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
-
-//           if (check) {
-//             const config = await _config();
-//             if (config.JOINING_BONUS > 0) {
-//               const htxnid = await newTxnId();
-//               const hostNewTxn = {
-//                 txnId: htxnid,
-//                 userId: check._id,
-//                 amount: config.JOINING_BONUS,
-//                 cash: 0,
-//                 reward: 0,
-//                 bonus: config.JOINING_BONUS,
-//                 remark: "Joining Bonus",
-//                 status: "completed",
-//                 txnType: "credit",
-//                 txnCtg: "bonus",
-//               };
-
-//               const h = await Transaction.create(hostNewTxn);
-//             }
-
-//             const money = await balance({ user: check });
-//             return res.json({
-//               success: true,
-//               message: "register_success",
-//               _tk: token,
-//               _di: newuser.deviceId,
-//               username: newuser.username,
-//               fullName: newuser.fullName,
-//               mobileNumber: newuser.mobileNumber,
-//               referralCode: newuser.referralCode,
-//               profile: newuser.profilePic,
-//               balance: money.balance,
-//             });
-//           } else {
-//             res.json({
-//               success: false,
-//               message: "something_is_wrong",
-//             });
-//           }
-//         }
-//       } else {
-//         return res.json({
-//           success: false,
-//           message: "io",
-//         });
-//       }
-//     }
-//   } catch (error) {
-//     if (error.response.data.description == "Request error: Incorrect OTP!") {
-//       return res.json({
-//         success: false,
-//         message: "io",
-//       });
-//     }
-//     return res.json({
-//       success: false,
-//       message: error.response ? error.response.data.message : error.message,
-//     });
-//   }
-// };
-
 export const verifyOtp = async (req, res) => {
   try {
-    const otp = await OTP.findOne({
+    // Find the OTP record in your DB using otpRef and mobileNumber
+    const otpRecord = await OTP.findOne({
       _id: req.body.otpRef,
       mobileNumber: req.body.mobileNumber,
     });
 
-    if (otp) {
-      if (req.body.otp == otp.otp) {
-        const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
-        if (user) req.body.action = "login";
-        if (req.body.action == "login") {
-          //login new user
+    // If OTP record exists and matches the code user typed:
+    if (
+      otpRecord &&
+      otpRecord.otp &&
+      req.body.otp &&
+      otpRecord.otp.toString() === req.body.otp.toString()
+    ) {
+      // Optional: Delete OTP from DB after use
+      await OTP.deleteOne({ _id: otpRecord._id });
 
-          if (user) {
-            const tokenData = { userId: user._id };
-            const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
-
-            const deviceId = uniqueString();
-            const result = await User.updateOne(
-              { _id: user._id }, // Filter by user ID
-              { $set: { deviceId: deviceId } } // Update the fullName field
-            );
-
-            if (result.modifiedCount > 0) {
-              const money = await balance({ user: user });
-              return res.json({
-                success: true,
-                message: "login_success",
-                _tk: token,
-                _di: deviceId,
-                username: user.username,
-                fullName: user.fullName,
-                mobileNumber: user.mobileNumber,
-                referralCode: user.referralCode,
-                profile: user.profilePic,
-                balance: money.balance,
-              });
-            } else {
-              res.json({
-                success: false,
-                message: "something_is_wrong",
-              });
-            }
-          } else {
-            res.json({
-              success: false,
-              message: "something_is_wrong",
-            });
-          }
-        } else if (req.body.action == "register") {
-          //register new user
-          const newuser = {
-            fullName: req.body.fullName,
-            mobileNumber: req.body.mobileNumber,
-            username: await generateUsername(),
-            referBy: req.body.referralCode,
-            referralCode: await generateUniqueReferralCode(),
-            deviceId: uniqueString(),
-          };
-
-          const check = await User.create(newuser);
-          const tokenData = { userId: check._id };
+      // User flow: login or register
+      const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
+      if (user) req.body.action = "login";
+      if (req.body.action == "login") {
+        // LOGIN FLOW
+        if (user) {
+          const tokenData = { userId: user._id };
           const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
-
-          if (check) {
-            const config = await _config();
-            if (config.JOINING_BONUS > 0) {
-              const htxnid = await newTxnId();
-              const hostNewTxn = {
-                txnId: htxnid,
-                userId: check._id,
-                amount: config.JOINING_BONUS,
-                cash: 0,
-                reward: 0,
-                bonus: config.JOINING_BONUS,
-                remark: "Joining Bonus",
-                status: "completed",
-                txnType: "credit",
-                txnCtg: "bonus",
-              };
-
-              const h = await Transaction.create(hostNewTxn);
-            }
-
-            const money = await balance({ user: check });
+          const deviceId = uniqueString();
+          const result = await User.updateOne(
+            { _id: user._id },
+            { $set: { deviceId: deviceId } }
+          );
+          if (result.modifiedCount > 0) {
+            const money = await balance({ user: user });
             return res.json({
               success: true,
-              message: "register_success",
+              message: "login_success",
               _tk: token,
-              _di: newuser.deviceId,
-              username: newuser.username,
-              fullName: newuser.fullName,
-              mobileNumber: newuser.mobileNumber,
-              referralCode: newuser.referralCode,
-              profile: newuser.profilePic,
+              _di: deviceId,
+              username: user.username,
+              fullName: user.fullName,
+              mobileNumber: user.mobileNumber,
+              referralCode: user.referralCode,
+              profile: user.profilePic,
               balance: money.balance,
             });
           } else {
-            res.json({
+            return res.json({
               success: false,
               message: "something_is_wrong",
             });
           }
+        } else {
+          return res.json({
+            success: false,
+            message: "something_is_wrong",
+          });
         }
-      } else {
-        return res.json({
-          success: false,
-          message: "io",
-        });
+      } else if (req.body.action == "register") {
+        // REGISTER FLOW
+        const newuser = {
+          fullName: req.body.fullName,
+          mobileNumber: req.body.mobileNumber,
+          username: await generateUsername(),
+          referBy: req.body.referralCode,
+          referralCode: await generateUniqueReferralCode(),
+          deviceId: uniqueString(),
+        };
+
+        const check = await User.create(newuser);
+        const tokenData = { userId: check._id };
+        const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+
+        if (check) {
+          const config = await _config();
+          if (config.JOINING_BONUS > 0) {
+            const htxnid = await newTxnId();
+            const hostNewTxn = {
+              txnId: htxnid,
+              userId: check._id,
+              amount: config.JOINING_BONUS,
+              cash: 0,
+              reward: 0,
+              bonus: config.JOINING_BONUS,
+              remark: "Joining Bonus",
+              status: "completed",
+              txnType: "credit",
+              txnCtg: "bonus",
+            };
+
+            await Transaction.create(hostNewTxn);
+          }
+
+          const money = await balance({ user: check });
+          return res.json({
+            success: true,
+            message: "register_success",
+            _tk: token,
+            _di: newuser.deviceId,
+            username: newuser.username,
+            fullName: newuser.fullName,
+            mobileNumber: newuser.mobileNumber,
+            referralCode: newuser.referralCode,
+            profile: newuser.profilePic,
+            balance: money.balance,
+          });
+        } else {
+          return res.json({
+            success: false,
+            message: "something_is_wrong",
+          });
+        }
       }
+    } else {
+      // OTP invalid (either not found or doesn't match)
+      return res.json({
+        success: false,
+        message: "invalid_otp",
+      });
     }
   } catch (error) {
-    ////console.log("error in verify otp", error);
     return res.json({
       success: false,
       message: error.response ? error.response.data.message : error.message,
     });
   }
 };
+
+
 function isNotEmpty(input) {
   const pattern = /[a-zA-Z0-9]/; // Regular expression to match letters or numbers
   return pattern.test(input); // Returns true if the string contains any letter or number

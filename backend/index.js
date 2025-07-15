@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 const server = createServer(app);
-
+app.use(cors());
 app.use(mongosanitize());
 // app.use(xss);
 const __dirname = path.resolve();
@@ -61,8 +61,8 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const corsOptions = {
-  origin: ["https://superludo.in", "https://admin.superludo.in"],
-  // origin: "*",
+  // origin: ["https://superludo.in", "https://admin.superludo.in"],
+  origin: "*",
   credentials: true,
   methods: ["POST", "GET", "OPTIONS"],
 };

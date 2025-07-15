@@ -14,11 +14,22 @@ import { WalletButton2 } from "./WalletButton2";
 
 export const UserInfo = ({ user, refresh }) => {
   const statusToggleForm = useRef();
+  const SUToggleForm = useRef();
+
   const [status, setStatus] = useState(user.status == "active" ? true : false);
+  const [_su, setSU] = useState(user._su);
+
   const handleStatusToggle = () => {
     setStatus(!status);
     if (statusToggleForm.current) {
       statusToggleForm.current.requestSubmit();
+    }
+  };
+
+  const handleSUToggle = () => {
+    setSU(!_su);
+    if (SUToggleForm.current) {
+      SUToggleForm.current.requestSubmit();
     }
   };
 
@@ -54,7 +65,30 @@ export const UserInfo = ({ user, refresh }) => {
                 </div>
               </div>
             </div>
-            <div>
+            <div className="d-flex">
+              <PostForm
+                action="/updateUserType"
+                formRef={SUToggleForm}
+                hideBtn={true}
+              >
+                <div className="form-check form-switch">
+                  <input type="hidden" name="userId" value={user._id} />
+                  <input type="hidden" name="_su" value={0} />
+                  <input
+                    name="_su"
+                    value={1}
+                    className="form-check-input"
+                    type="checkbox"
+                    id="flexSwitchCheckDefault"
+                    onChange={handleSUToggle}
+                    checked={_su}
+                  />
+                </div>
+                <div className="xs-small text-center">
+                  {" "}
+                  {_su ? "Super User" : "Normal User"}
+                </div>
+              </PostForm>
               <PostForm
                 action="/updateUserStatus"
                 formRef={statusToggleForm}

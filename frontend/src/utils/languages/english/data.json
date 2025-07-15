@@ -40,9 +40,9 @@
   "logout_success": "You have successfully logged out.",
   "login_btn": "Login",
   "register_btn": "Register",
-  "home_btn": "Home",
-  "profile_btn": "Profile",
-  "refer_btn": "Refer",
+  "home_btn": "PLAY",
+  "profile_btn": "PROFILE",
+  "refer_btn": "REFER",
   "language_btn": "Language",
   "match_btn": "Matches",
   "english_change_msg": "Default language changed to English.",
@@ -268,5 +268,7 @@
   "speed_ludo_label": "Speed Ludo Online",
   "waiting": "waiting",
   "already_join_req": "you are already joined a waiting room",
-  "kyc_verified": "your kyc is verified successfully"
+  "kyc_verified": "your kyc is verified successfully",
+  "deposit_btn": "ADD MONEY",
+  "withdraw_btn": "WITHDRAW"
 }

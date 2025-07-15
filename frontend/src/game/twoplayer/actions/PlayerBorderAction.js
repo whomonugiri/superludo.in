@@ -1,14 +1,18 @@
 export const PlayerBorderAction = (scene) => {
-  let path = {
-    blue: { x: 72, y: 1794 },
-    green: { x: 1006, y: 1794 },
-  };
+  let path;
 
-  // if (scene.color == "green") {
-  //   path.blue.y = 127;
+  if (scene.color == "green") {
+    path = {
+      blue: { x: 1006, y: 1794 },
+      green: { x: 72, y: 1794 },
+    };
+  } else {
+    path = {
+      blue: { x: 72, y: 1794 },
+      green: { x: 1006, y: 1794 },
+    };
+  }
 
-  //   path.green.y = 127;
-  // }
   //   scene.playerBorder.x = path[scene.currentColor].x;
   //   scene.playerBorder.y = path[scene.currentColor].y;
   //   //console.log(scene.playerBorder);

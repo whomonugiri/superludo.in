@@ -14,12 +14,12 @@ export const MovePlayerAction = (scene, goti) => {
     scene.tweens.add({
       targets: goti, // The object to tween
       props: {
-        scaleX: { value: 1.35, duration: 125, yoyo: true },
-        scaleY: { value: 1.35, duration: 125, yoyo: true },
-        y: { value: scene.moves[0].y, duration: 125 },
-        x: { value: scene.moves[0].x, duration: 125 },
+        scaleX: { value: 1.35, duration: 65, yoyo: true },
+        scaleY: { value: 1.35, duration: 65, yoyo: true },
+        y: { value: scene.moves[0].y, duration: 65 },
+        x: { value: scene.moves[0].x, duration: 65 },
       },
-      duration: 250, // Duration of the tween in milliseconds
+      duration: 130, // Duration of the tween in milliseconds
       ease: "Quad.easeOut", // Easing function (e.g., 'Linear', 'Cubic', 'Bounce', etc.)
       repeat: 0, // Number of times to repeat (-1 for infinite)
       onComplete: () => {
@@ -28,5 +28,5 @@ export const MovePlayerAction = (scene, goti) => {
         scene.moves.shift();
       },
     });
-  }, 250);
+  }, 130);
 };

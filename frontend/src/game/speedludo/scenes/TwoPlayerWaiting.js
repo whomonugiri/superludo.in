@@ -19,13 +19,13 @@ export class TwoPlayerWaiting extends Scene {
     this.socket = this.registry.get("socket");
     GetData(this);
     this.load.setPath("/assets");
-    this.load.image("background2", "waiting_background.png");
+    this.load.image("background2", "waiting_background.png?");
     this.load.image("search", "search.png");
     this.load.image("profile", "noprofile.png");
     this.load.image("searchText", "searching_text.png");
 
     for (let i = 1; i <= 20; i++) {
-      this.load.image("avatar" + i, "avatars/avatar" + i + ".png");
+      this.load.image("avatar" + i, "avatars/avatar" + i + ".png?");
       this.images.push("avatar" + i);
     }
   }

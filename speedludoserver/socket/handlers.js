@@ -121,6 +121,8 @@ export const socketHandlers = async (io, socket) => {
           rooms[gameData.roomCode] = new Room(gameData.roomCode);
 
           rooms[gameData.roomCode]._id = gameUid;
+          rooms[gameData.roomCode].prize = gameData.prize;
+
           rooms[gameData.roomCode].duration = gameData.duration;
           rooms[gameData.roomCode].expectedEndingTime =
             Date.now() + Number(gameData.duration) * 60 * 1000;
@@ -311,6 +313,75 @@ export const socketHandlers = async (io, socket) => {
       }
     }
 
+    socket.on("exitGame", (res) => {
+      try {
+        const room = rooms[res.room_code];
+
+        if (!room) {
+          socket.emit("gohome");
+          return;
+        }
+
+        if (res.color == "blue") {
+          room.data[0].exit = true;
+        } else if (res.color == "green") {
+          room.data[1].exit = true;
+        }
+
+        //
+
+        let ws = checkWinningStatus(room, { color: room.currentTurn }, colors);
+        if (ws) {
+          room.winner = ws.winnerColor;
+          room.looser = ws.looserColor;
+          room.endedAt = new Date().toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+          });
+          room.status = 1;
+
+          clearInterval(room.moveTimeRef);
+          clearInterval(room.waitTimeRef);
+          // let wlog = {
+          //   start: room.createdAt,
+          //   end: room.endedAt,
+          //   winner: { color: room.winner, id: ws.winnerId },
+          //   looser: { color: room.looser, id: ws.looserId },
+          // };
+
+          // //console.log(wlog);
+          // datastore[room.code] = wlog;
+
+          let end = {
+            win: ws.winnerColor,
+            winScore: ws.winnerScore,
+            lose: ws.looserColor,
+            loseScore: ws.looserScore,
+            sc: ws.sc,
+          };
+          updateGameData({
+            gameUid: room._id,
+            data: { ...end, roomData: room },
+          })
+            .then((result) => {
+              // //console.log("Game data updated successfully", result);
+            })
+            .catch((error) => {
+              // //console.error("Error updating game data", error);
+            });
+          io.to(room.code).emit("_end", end);
+          // //console.log("game is finished");
+          setTimeout(() => {
+            delete rooms[room.code];
+          }, 1000 * 60 * 5);
+
+          socket.emit("gohome");
+        }
+        //
+      } catch (error) {
+        console.error("Error in :", error);
+      }
+    });
+
     function handleMovePlayer(res) {
       try {
         const room = rooms[res.room_code];
@@ -375,6 +446,7 @@ export const socketHandlers = async (io, socket) => {
           duration: room.duration,
           startedAt: room.createdAt,
           amount: room.amount,
+          prize: room.prize,
           mode: room.mode,
           ...playerData,
           userId:

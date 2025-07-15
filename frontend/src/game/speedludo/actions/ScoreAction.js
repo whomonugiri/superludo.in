@@ -16,6 +16,6 @@ export const ScoreAction = (scene, res) => {
     scene.gotis[color + "3"].score = res.scoresData[color][3].score;
 
     scene.playerInfo[color].score = score;
-    scene[color + "Score"].setText("Score : " + scene.playerInfo[color].score);
+    scene[color + "Score"].setText(scene.playerInfo[color].score);
   });
 };

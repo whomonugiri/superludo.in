@@ -26,7 +26,7 @@ export const TimerAction = (scene) => {
 
   scene.progressBar.clear();
   scene.progressBar.fillStyle(color, 1);
-  if (scene.color == "blue") {
+  if (true) {
     scene.progressBar.slice(
       profile.x,
       profile.y,

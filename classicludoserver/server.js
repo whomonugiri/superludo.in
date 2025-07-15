@@ -12,7 +12,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new SocketIo(server, {
   cors: {
-    origin: "https://superludo.in", // Adjust for production (e.g., "https://ludokingo.in")
+    // origin: "https://superludo.in", // Adjust for production (e.g., "https://ludokingo.in")
+    origin: "*",
     credentials: true,
     methods: ["POST", "GET", "OPTIONS"],
   },

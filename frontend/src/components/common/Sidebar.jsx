@@ -17,12 +17,23 @@ import { useNavigate } from "react-router";
 import $ from "jquery";
 import { FaHome } from "react-icons/fa";
 import { MdOutlineVerified, MdVerified } from "react-icons/md";
+import { Button5 } from "../elements/Button5"; // Assuming Button5 is used for the language toggle
+
 const Sidebar = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile, fullName, mobileNumber, kyc } = useSelector(
     (store) => store.auth
   );
   const navigate = useNavigate();
+
+  const toggleLanguage = () => {
+    if (i18n.language === "english") {
+      i18n.changeLanguage("hindi");
+    } else {
+      i18n.changeLanguage("english");
+    }
+  };
+
   return (
     <>
       <div
@@ -70,8 +81,7 @@ const Sidebar = () => {
             </div>
           </div>
 
-          {/* sidebar buttons */}
-
+          {/* Sidebar buttons */}
           <SidebarButton title={t("home_btn")} icon={<FaHome />} path="/" />
           <SidebarButton
             title={t("sidebar_transactions")}
@@ -110,9 +120,12 @@ const Sidebar = () => {
             path="/chat"
           />
 
+          {/* New Language Button */}
+          <Button5 action={toggleLanguage} text={t("language_btn")} icon={<MdOutlineVerified />} />
+
           {/* sidebar buttons ends */}
 
-          {/* //imporatnlinks */}
+          {/* Important links */}
           <div className="d-flex gap-3 flex-wrap justify-content-center mt-3">
             <a href="#" className="text-decoration-none small">
               {t("page_about_us")}
@@ -125,7 +138,7 @@ const Sidebar = () => {
             </a>
           </div>
 
-          {/* imporatntlinks ends here */}
+          {/* Important links ends here */}
         </div>
       </div>
     </>

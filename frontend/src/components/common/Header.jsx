@@ -74,7 +74,7 @@ const Header = () => {
                 src={`/assets/logo.png`}
                 alt="Logo"
                 height="40"
-                className="d-inline-block align-text-top rounded"
+                className="d-inline-block align-text-top"
               />
             </Link>
           </div>

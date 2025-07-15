@@ -185,7 +185,7 @@ export const UIHandler = (scene) => {
     .text(
       10, // x position
       10, // y position
-      "Room : " + scene.roomCode, // Text content
+      scene.roomCode, // Text content
       {
         fontSize: "35px", // Font size
         fontStyle: "bold",
@@ -223,14 +223,14 @@ export const UIHandler = (scene) => {
   //   }
   // );
 
-  scene.add.image(540, 70, "prize").setScale(0.6);
+  scene.add.image(540, 80, "prize").setScale(0.8);
 
   scene.add.text(
     500, // x position
     70, // y position
     "₹ " + scene.prize, // Text content
     {
-      fontSize: "30px", // Font size
+      fontSize: "40px", // Font size
       fontStyle: "bold",
       color: "white", // Text color
       fontFamily: "Ariel", // Font family

@@ -39,6 +39,7 @@ const Homepage = () => {
   };
 
   useEffect(() => {
+    fetchGames();
     const interval = setInterval(() => {
       const btn = document.getElementById("nb");
       if (btn) {

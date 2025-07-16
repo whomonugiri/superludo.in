@@ -35,7 +35,7 @@ export const Sidebar = () => {
           ></i>
           <a className="navbar-brand m-0">
             <img
-              src="/assets/logo.png"
+              src="/assets/logo.png?v=45"
               className="navbar-brand-img h-100"
               alt="main_logo"
             />

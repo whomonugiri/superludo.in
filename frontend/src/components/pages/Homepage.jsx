@@ -117,7 +117,7 @@ const Homepage = () => {
                 </div>
 
                 <img
-                  src={"/assets/quick.png" + "?v"}
+                  src={"/assets/quick.png" + "?v=5"}
                   className={`w-100 rounded border border-warning border-3  text-dark opacity-50`}
                 />
               </div>
@@ -137,7 +137,7 @@ const Homepage = () => {
                 </div>
 
                 <img
-                  src={"/assets/quick2.png" + "?v"}
+                  src={"/assets/quick2.png" + "?v=5"}
                   className={`w-100 rounded border border-warning border-3  text-dark opacity-50`}
                 />
               </div>

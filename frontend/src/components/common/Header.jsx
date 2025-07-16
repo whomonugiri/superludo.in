@@ -71,7 +71,7 @@ const Header = () => {
             {isAuth && <Button3 icon={<RiMenu2Fill />} canvasid="#sidebar" />}
             <Link className="navbar-brand" to="/">
               <img
-                src={`/assets/logo.png`}
+                src={`/assets/logo.png?v=29`}
                 alt="Logo"
                 height="40"
                 className="d-inline-block align-text-top"

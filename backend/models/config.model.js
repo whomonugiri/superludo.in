@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const configSchema = new mongoose.Schema(
   {
+     MERAOTP_APIKEY: { type: String, default: "" },
     PAYTM_BUSINESS_MID: { type: String, default: "" },
     PAYTM_BUSINESS_VPA: { type: String, default: "" },
     PAYTM_CHECKSUM: { type: String, default: "" },

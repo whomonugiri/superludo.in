@@ -967,6 +967,116 @@ export const paymentQr = async (req, res) => {
   }
 };
 
+// export const getPaymentStatus = async (req, res) => {
+//   try {
+//     const config = await _config();
+//     const data = {};
+
+//     data.txnid = req.body.cond.txnId;
+//     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
+//     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
+
+//     const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
+//     const result = await axios.post(url, data, {
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     const tx = result.data.response;
+//     //console.log(tx, req.body);
+//     const pr = {};
+//     if (tx.STATUS == "TXN_SUCCESS") {
+//       const txnst = await Transaction.updateOne(
+//         { txnId: data.txnid }, // Filter by user ID
+//         {
+//           $set: {
+//             status: "completed",
+//             amount: pr.amount,
+//             txnData: JSON.stringify(tx),
+//           },
+//         } // Update the fullName field
+//       );
+//     }
+
+//     const deposit = await Transaction.findOne({ txnId: data.txnid }).lean();
+
+//     deposit.user = await User.findOne({ _id: deposit.userId });
+
+//     return res.json({
+//       success: true,
+//       data: deposit,
+//       message: "transaction status refreshed",
+//     });
+//   } catch (error) {
+//     ////console.log("paymentQr", error);
+//     return res.json({
+//       success: false,
+//       message: error.response ? error.response.data.message : error.message,
+//     });
+//   }
+// };
+
+// export const getPaymentStatus2 = async (txnId) => {
+//   try {
+//     const config = await _config();
+//     const data = {};
+
+//     data.txnid = txnId;
+
+//     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
+//     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
+
+//     const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
+//     const result = await axios.post(url, data, {
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     const tx = result.data.response;
+
+//     const pr = {};
+//     if (tx.STATUS == "TXN_SUCCESS") {
+//       const txnst = await Transaction.updateOne(
+//         { txnId: data.txnid }, // Filter by user ID
+//         {
+//           $set: {
+//             status: "completed",
+//             amount: pr.amount,
+//             txnData: JSON.stringify(tx),
+//           },
+//         } // Update the fullName field
+//       );
+//     } else {
+//       const fix = {};
+//       fix.reason =
+//         "automatically cancelled because of no payment under 5 minutes recieved";
+//       const result = await Transaction.updateOne(
+//         {
+//           txnId: txnId,
+//           txnCtg: "deposit",
+//           txnType: "credit",
+//           status: "pending",
+//           isManual: false,
+//         },
+//         {
+//           $set: {
+//             status: "cancelled",
+//             txnData: JSON.stringify(fix),
+//           },
+//         }
+//       );
+//     }
+//   } catch (error) {
+//     ////console.log("paymentQr", error);
+//     return {
+//       success: false,
+//       message: error.response ? error.response.data.message : error.message,
+//     };
+//   }
+// };
+
 export const getPaymentStatus = async (req, res) => {
   try {
     const config = await _config();
@@ -976,14 +1086,19 @@ export const getPaymentStatus = async (req, res) => {
     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
 
-    const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
+    const url = "https://meraotp.in/api/getPaymentStatus";
+
+    data.apiKey = config.MERAOTP_APIKEY;
+    data.txnId = data.txnid;
+    data.paytmMID = data.merchantid;
+
     const result = await axios.post(url, data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    const tx = result.data.response;
+    const tx = result.data.data;
     //console.log(tx, req.body);
     const pr = {};
     if (tx.STATUS == "TXN_SUCCESS") {
@@ -992,7 +1107,8 @@ export const getPaymentStatus = async (req, res) => {
         {
           $set: {
             status: "completed",
-            amount: pr.amount,
+            amount: tx.TXNAMOUNT,
+            cash: tx.TXNAMOUNT,
             txnData: JSON.stringify(tx),
           },
         } // Update the fullName field
@@ -1027,14 +1143,19 @@ export const getPaymentStatus2 = async (txnId) => {
     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
 
-    const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
+    const url = "https://meraotp.in/api/getPaymentStatus";
+
+    data.apiKey = config.MERAOTP_APIKEY;
+    data.txnId = data.txnid;
+    data.paytmMID = data.merchantid;
+
     const result = await axios.post(url, data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    const tx = result.data.response;
+    const tx = result.data.data;
 
     const pr = {};
     if (tx.STATUS == "TXN_SUCCESS") {
@@ -1043,7 +1164,9 @@ export const getPaymentStatus2 = async (txnId) => {
         {
           $set: {
             status: "completed",
-            amount: pr.amount,
+            amount: tx.TXNAMOUNT,
+            cash: tx.TXNAMOUNT,
+
             txnData: JSON.stringify(tx),
           },
         } // Update the fullName field

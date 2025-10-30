@@ -1,8 +1,8 @@
-export const HOST = "https://server.moneyludo.in";
-export const SPEED_LUDO_SERVER = "https://speed-ludo-server.moneyludo.in";
+export const HOST = "https://server.superludo.in";
+export const SPEED_LUDO_SERVER = "https://speed-ludo-server.superludo.in";
 export const CLASSIC_ONLINE_SERVER =
-  "https://classic-online-server.moneyludo.in";
-export const QUICK_LUDO_SERVER = "https://quick-ludo-server.moneyludo.in";
+  "https://classic-online-server.superludo.in";
+export const QUICK_LUDO_SERVER = "https://quick-ludo-server.superludo.in";
 
 // export const HOST = "http://localhost:3142";
 // export const CLASSIC_ONLINE_SERVER = "http://localhost:3143";

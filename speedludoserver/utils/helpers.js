@@ -86,7 +86,7 @@ export const toggleTurn = (room) => {
     }
     clearInterval(room.waitTimeRef);
     room.waitTimeRef = null;
-    room.waitTimer = 13000;
+    room.waitTimer = 10000;
     room.movableSteps = 0;
     room.sixCount = 0;
     return d;
@@ -180,12 +180,12 @@ export const startTimer = (room, colors, io) => {
       }, 1000 * 60 * 5);
       return;
     } else {
-      if (!room.waitTimeRef && room.waitTimer == 13000) {
+      if (!room.waitTimeRef && room.waitTimer == 10000) {
         room.killing = false;
         room.waitTimeRef = setInterval(() => {
           let obfix = {};
           obfix.scoresData = getPlayersScores(room);
-          obfix.progress = room.waitTimer / 13000;
+          obfix.progress = room.waitTimer / 10000;
 
           io.to(room.code).emit("timerProgress", obfix);
 
@@ -193,7 +193,7 @@ export const startTimer = (room, colors, io) => {
           if (room.waitTimer < 1) {
             clearInterval(room.waitTimeRef);
             room.waitTimeRef = null;
-            room.waitTimer = 13000;
+            room.waitTimer = 10000;
             sendRunDice(
               room,
               {
@@ -506,7 +506,7 @@ export const movePlayer = (room, res, colors, io) => {
 
             clearInterval(room.waitTimeRef);
             room.waitTimeRef = null;
-            room.waitTimer = 13000;
+            room.waitTimer = 10000;
             room.movableSteps = 0;
           } else {
             room.lastDiceValue = 0;
@@ -680,9 +680,17 @@ export const sendRunDice = (room, res, colors, io) => {
     } else {
       res.value = getRandomWithProbability();
       // res.value = randomNumber(1, 6);
+
       if (res.magic && res.magic > 0) {
         res.value = res.magic;
       }
+
+      if (room.sixCount == 1 && res.value == 6) {
+        while (res.value == 6) {
+          res.value = getRandomWithProbability();
+        }
+      }
+
       // res.value = 1;
       if (res.value == 6) room.sixCount++;
       else room.sixCount = 0;
@@ -885,7 +893,7 @@ export const moveGoti = (room, res, colors, io) => {
         room.playerIsMoving = false;
         clearInterval(room.waitTimeRef);
         room.waitTimeRef = null;
-        room.waitTimer = 13000;
+        room.waitTimer = 10000;
         room.movableSteps = 0;
         startTimer(room, colors, io);
         // }

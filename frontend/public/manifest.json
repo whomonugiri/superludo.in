@@ -3,29 +3,16 @@
   "name": "Super Ludo",
   "icons": [
     {
-      "src": "assets/applogo.png?v=2",
+      "src": "assets/applogo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "id": "/?source=pwa",
-  "start_url": "/?source=pwa",
+  "start_url": ".",
   "description": "Install Super Ludo App On Your Smartphone",
-  "background_color": "#0579a9",
+  "background_color": "#201876",
   "display": "standalone",
   "scope": "/",
-  "theme_color": "#0579a9",
-  "screenshots": [
-    {
-      "src": "assets/screenshot-mobile.png",
-      "sizes": "540x720",
-      "type": "image/png"
-    },
-    {
-      "src": "assets/screenshot-desktop.png",
-      "sizes": "720x540",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ]
+  "theme_color": "#201876"
 }

@@ -38,6 +38,14 @@ const gameSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    durationLite: {
+      type: Number,
+      required: true,
+    },
+    moves: {
+      type: Number,
+      required: true,
+    },
     guideenglish: {
       type: String, // A text field to store the guide (could also be Markdown or rich text)
       default: "",

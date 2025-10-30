@@ -23,24 +23,72 @@ export const Configuration = () => {
           loaderColor="white"
         >
           {configs &&
-             Object.entries(configs).map(([key, value]) => {
-               if (
-                 key === "__v" ||
-                 key === "createdAt" ||
-                 key === "updatedAt" ||
-                 key === "_id" ||
-                 key === "PAYTM_PAYMENT_VERIFICATION_URL" ||
-      // key === "FAST2SMS_APIKEY" ||
-      // key === "FAST2SMS_ROUTE" ||
-      // key === "FAST2SMS_SENDER_ID" ||
-      // key === "FAST2SMS_MESSAGE" ||
-                  key === "PAYTM_CHECKSUM"
-                )
-                return;
+            Object.entries(configs).map(([key, value]) => {
+              // Skip sensitive/system keys
+              if (
+                key === "__v" ||
+                key === "createdAt" ||
+                key === "updatedAt" ||
+                key === "_id" ||
+                key === "PAYTM_PAYMENT_VERIFICATION_URL" ||
+                key === "PAYTM_CHECKSUM" ||
+                key === "OTPLESS_CLIENT_ID" ||
+                key === "OTPLESS_SECRET"
+              ) {
+                return null;
+              }
+
+              // Format label -> "WITHDRAW_START_TIME" -> "Withdraw Start Time"
+              const formatLabel = (label) =>
+                label
+                  .replaceAll("_", " ")
+                  .toLowerCase()
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
+
+              // Withdraw time fields
+              if (
+                key === "WITHDRAW_START_TIME" ||
+                key === "WITHDRAW_END_TIME"
+              ) {
+                return (
+                  <div key={key} className="my-3">
+                    <div className="small fw-bold text-dark">
+                      {formatLabel(key)}
+                    </div>
+                    <input
+                      type="time"
+                      name={key}
+                      className="form-control"
+                      defaultValue={value}
+                    />
+                  </div>
+                );
+              }
+
+              // Withdraw status dropdown
+              if (key === "WITHDRAW_STATUS") {
+                return (
+                  <div key={key} className="my-3">
+                    <div className="small fw-bold text-dark">
+                      {formatLabel(key)}
+                    </div>
+                    <select
+                      name={key}
+                      className="form-control"
+                      defaultValue={Number(value)}
+                    >
+                      <option value={1}>Open</option>
+                      <option value={0}>Closed</option>
+                    </select>
+                  </div>
+                );
+              }
+
+              // Default text field
               return (
                 <div key={key} className="my-3">
                   <div className="small fw-bold text-dark">
-                    {key.replaceAll("_", " ")}
+                    {formatLabel(key)}
                   </div>
                   <input
                     type="text"

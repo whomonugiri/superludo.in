@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "bootstrap/dist/css/bootstrap.min.css?v=1";
+import "bootstrap/dist/js/bootstrap.js";
 import "animate.css";
 import "./index.css";
 import toastr from "toastr";

@@ -12,6 +12,7 @@ export const Input1 = (props) => {
             type={props.type}
             className="form-control"
             id={props.id}
+            onChange={props.action}
           />
         </div>
       </div>

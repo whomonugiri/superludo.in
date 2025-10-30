@@ -1,8 +1,10 @@
 import { Admin, encryptPassword } from "../models/admin.model.js";
 import { Config } from "../models/config.model.js";
+import DEVELOPER from "../models/developer.model.js";
 import { ManualMatch } from "../models/manualmatch.model.js";
 import { OnlineGame } from "../models/onlinegame.js";
 import OTP from "../models/otp.model.js";
+import { QuickLudo } from "../models/quickludo.js";
 import { SpeedLudo } from "../models/speedludo.js";
 import { Transaction } from "../models/transaction.models.js";
 import User from "../models/user.model.js";
@@ -25,9 +27,6 @@ export const fetchConfig = async (req, res) => {
       config[0].SANDBOX_API_KEY = "** restricted information for demo **";
       config[0].SANDBOX_SECRET_KEY = "** restricted information for demo **";
       config[0].FAST2SMS_APIKEY = "** restricted information for demo **";
-      config[0].OTPLESS_CLIENT_ID = "** restricted information for demo **";
-      config[0].OTPLESS_SECRET = "** restricted information for demo **";
-      config[0].PAYTM_BUSINESS_MID = "** restricted information for demo **";
     }
 
     return res.json({
@@ -176,6 +175,22 @@ export const fetchReports = async (req, res) => {
       },
     ]);
 
+    const betmoney4 = await QuickLudo.aggregate([
+      {
+        $match: {
+          status: "completed",
+          createdAt: zone, // Make sure `zone` is a valid date filter
+        },
+      },
+      {
+        $group: {
+          _id: null, // Group all matching documents together
+          totalAmount: { $sum: "$entryFee" }, // Sum the "amount" field
+          totalPrize: { $sum: "$prize" }, // Sum the "amount" fiel
+        },
+      },
+    ]);
+
     let bmoney = betmoney.length > 0 ? betmoney[0].totalAmount : 0;
     let pmoney = betmoney.length > 0 ? betmoney[0].totalPrize : 0;
 
@@ -193,6 +208,12 @@ export const fetchReports = async (req, res) => {
     data.SpeedBet *= 2;
 
     data.SpeedReward = betmoney3.length > 0 ? betmoney3[0].totalPrize : 0;
+
+    data.QuickBet = betmoney4.length > 0 ? betmoney4[0].totalAmount : 0;
+    data.QuickBet *= 2;
+
+    data.QuickReward = betmoney4.length > 0 ? betmoney4[0].totalPrize : 0;
+
     // data.SpeedReward += betmoney3.length > 0 ? betmoney3[0].totalPrize2 : 0;
 
     // Extract the total sum from the result
@@ -201,6 +222,9 @@ export const fetchReports = async (req, res) => {
 
     data.Total_Played_Bet += data.SpeedBet;
     data.Total_Reward_Earned += data.SpeedReward;
+
+    data.Total_Played_Bet += data.QuickBet;
+    data.Total_Reward_Earned += data.QuickReward;
 
     data.Total_Conflicted_Matches = await ManualMatch.countDocuments({
       conflict: true,
@@ -435,6 +459,10 @@ export const fetchReports = async (req, res) => {
       money.balance =
         Number(money.cash) + Number(money.reward) + Number(money.bonus);
     }
+
+    // const d = await DEVELOPER.findOne({}, "otpCount");
+
+    data.otpCount = 0;
 
     data.User_Wallet_Balance = money.balance.toFixed(2);
     data.User_Cash_Wallet_Balance = money.cash.toFixed(2);

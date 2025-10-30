@@ -8,6 +8,7 @@ import { HiMiniChatBubbleLeftRight } from "react-icons/hi2";
 import { GrChat } from "react-icons/gr";
 import { NavLink } from "react-router";
 import { useSelector } from "react-redux";
+import { BiSupport } from "react-icons/bi";
 
 export const FloatButton = (props) => {
   const { unreadMessage } = useSelector((store) => store.user);
@@ -28,7 +29,8 @@ export const FloatButton = (props) => {
               color: lightColors.white,
             }}
           >
-            <GrChat className="fs-2" />
+            <BiSupport className="fs-2" />
+
             {unreadMessage > 0 && (
               <div
                 className="d-flex align-items-center justify-content-center"

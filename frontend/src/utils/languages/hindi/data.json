@@ -3,7 +3,7 @@
   "app_install_btn": "इंस्टॉल करें",
   "guide_btn": "गाइड",
   "homepage_yt_card_title": "कैसे खेलें?",
-  "homepage_yt_card_subtitle": "Super Ludo से पैसे कैसे जीतें?",
+  "homepage_yt_card_subtitle": "Money Ludo से पैसे कैसे जीतें?",
   "homepage_card2": "अपने जोखिम पर खेलें",
   "homepage_card3": "अपने दोस्तों को रेफर करें और उनकी जीत पर 2% कमीशन कमाएँ, साथ ही उनके रेफरल की जीत पर भी आजीवन लाभ प्राप्त करें। रेफरल बोनस 2 स्तर तक।",
   "homepage_warning_title": "चेतावनी: जिम्मेदारी से खेलें!",
@@ -40,7 +40,7 @@
   "logout_success": "आप सफलतापूर्वक लॉगआउट हो गए हैं।",
   "login_btn": "लॉगिन",
   "register_btn": "रजिस्टर",
-  "home_btn": "प्ले",
+  "home_btn": "होम",
   "profile_btn": "प्रोफाइल",
   "refer_btn": "रेफर",
   "language_btn": "भाषा",
@@ -248,6 +248,11 @@
   "waiting": "प्रतीक्षा करें",
   "already_join_req": "आप पहले से ही एक Waiting Room में शामिल हैं",
   "kyc_verified": "आपका केवाईसी सफलतापूर्वक सत्यापित हो गया है",
-  "deposit_btn": "पैसे जोड़ें",
-  "withdraw_btn": "पैसे निकालें"
+  "GST_label_1": "जमा राशि (सरकारी कर छोड़कर)",
+  "GST_label_2": "सरकारी कर (28%)",
+  "GST_label_3": "कुल राशि",
+  "GST_label_4": "कैशबैक बोनस",
+  "GST_label_5": "वॉलेट में जोड़ा गया",
+  "GST_A": "ए",
+  "GST_B": "बी"
 }

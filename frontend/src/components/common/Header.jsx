@@ -58,20 +58,20 @@ const Header = () => {
 
   return (
     <>
-      <Marquee className="bg-danger text-white overflow-hidden text-center py-1  ">
+      <Marquee className="bg-black text-white fw-bold small overflow-hidden text-center py-1  ">
         {textData &&
           textData["Top Moving Banner"] &&
           textData["Top Moving Banner"][
             i18n.language == "hindi" ? "hindi" : "english"
           ]}
       </Marquee>
-      <nav className="navbar p-0 border-bottom py-1 shadow-sm col-md-5 mx-auto">
+      <nav className="navbar p-0 border-bottom py-1 shadow-sm col-md-5 mx-auto ">
         <div className="container-fluid ">
           <div className="d-flex gap-1">
             {isAuth && <Button3 icon={<RiMenu2Fill />} canvasid="#sidebar" />}
             <Link className="navbar-brand" to="/">
               <img
-                src={`/assets/logo.png?v=29`}
+                src={`/assets/logo.png`}
                 alt="Logo"
                 height="40"
                 className="d-inline-block align-text-top"
@@ -93,6 +93,30 @@ const Header = () => {
             )}
 
             {isAuth && <WalletButton balance={formatAmount(Number(balance))} />}
+
+            {!isAuth && (
+              <div className="d-flex gap-1">
+                <Button2
+                  // icon={<MdInstallMobile />}
+                  working={false}
+                  text={"Login"}
+                  class="btn-danger text-white rounded-2 fw-bold"
+                  action={() => {
+                    navigate("/login");
+                  }}
+                />
+
+                <Button2
+                  // icon={<MdInstallMobile />}
+                  working={false}
+                  text={"Sign Up"}
+                  class="btn-danger text-white rounded-2 fw-bold"
+                  action={() => {
+                    navigate("/register");
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </nav>

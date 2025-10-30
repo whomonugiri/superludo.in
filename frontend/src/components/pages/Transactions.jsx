@@ -71,7 +71,10 @@ export const Transactions = () => {
   return (
     <>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="my-2 d-flex gap-2 overflow-scroll py-2">
+        <div className="my-2 fw-bold border-bottom  pb-2 text-center mb-3 fs-5">
+          Transactions History
+        </div>
+        {/* <div className="my-2 d-flex gap-2 overflow-scroll py-2">
           <Button6 text="ALL" type={ctg} action={changeType} working={false} />
           <Button6
             text="DEPOSIT"
@@ -104,7 +107,7 @@ export const Transactions = () => {
             action={changeType}
             working={false}
           />
-        </div>
+        </div> */}
         {txns.length < 1 && <NoData text={t("no_transaction_found")} />}
         <div className="">
           {txns.map((txn) => {
@@ -117,6 +120,7 @@ export const Transactions = () => {
                 remark={txn.remark}
                 status={txn.status}
                 txnType={txn.txnType}
+                txnCtg={txn.txnCtg}
               />
             );
           })}

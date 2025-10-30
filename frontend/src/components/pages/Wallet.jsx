@@ -54,7 +54,14 @@ export const Wallet = () => {
           path="/deposit"
           amount={cash}
           info={t("cash_wallet_info")}
-          class="bg-primary"
+          class="bg-dark"
+        />
+
+        <WalletInfo
+          title={t("bonus_wallet_title")}
+          amount={bonus}
+          info={t("bonus_wallet_info")}
+          class="bg-dark"
         />
 
         <WalletInfo
@@ -63,14 +70,7 @@ export const Wallet = () => {
           path="/withdraw"
           amount={reward}
           info={t("reward_wallet_info")}
-          class="bg-danger"
-        />
-
-        <WalletInfo
-          title={t("bonus_wallet_title")}
-          amount={bonus}
-          info={t("bonus_wallet_info")}
-          class="bg-dark"
+          class="bg-primary"
         />
       </motion.div>
     </>

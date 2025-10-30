@@ -11,7 +11,7 @@ class Room {
     this.movableSteps = 0;
     this.moveTimeRef = null;
     this.waitTimeRef = null;
-    this.waitTimer = 13000;
+    this.waitTimer = 10000;
     this.playerIsMoving = false;
     this.lastDiceValue = 0;
     this.extraChance = false;

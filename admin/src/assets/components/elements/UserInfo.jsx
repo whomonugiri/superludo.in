@@ -14,23 +14,18 @@ import { WalletButton2 } from "./WalletButton2";
 
 export const UserInfo = ({ user, refresh }) => {
   const statusToggleForm = useRef();
-  const SUToggleForm = useRef();
 
-  const [status, setStatus] = useState(user.status == "active" ? true : false);
-  const [_su, setSU] = useState(user._su);
+  // Initialize all toggles inside one state object
+  const [flags, setFlags] = useState({
+    status: user.status === "active",
+    _su: !!user._su,
+    _y: !!user._y,
+  });
 
-  const handleStatusToggle = () => {
-    setStatus(!status);
-    if (statusToggleForm.current) {
-      statusToggleForm.current.requestSubmit();
-    }
-  };
-
-  const handleSUToggle = () => {
-    setSU(!_su);
-    if (SUToggleForm.current) {
-      SUToggleForm.current.requestSubmit();
-    }
+  // Generic toggle function
+  const toggleFlag = (key) => {
+    setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
+    statusToggleForm.current?.requestSubmit();
   };
 
   return (
@@ -65,51 +60,68 @@ export const UserInfo = ({ user, refresh }) => {
                 </div>
               </div>
             </div>
-            <div className="d-flex">
-              <PostForm
-                action="/updateUserType"
-                formRef={SUToggleForm}
-                hideBtn={true}
-              >
-                <div className="form-check form-switch">
-                  <input type="hidden" name="userId" value={user._id} />
-                  <input type="hidden" name="_su" value={0} />
-                  <input
-                    name="_su"
-                    value={1}
-                    className="form-check-input"
-                    type="checkbox"
-                    id="flexSwitchCheckDefault"
-                    onChange={handleSUToggle}
-                    checked={_su}
-                  />
-                </div>
-                <div className="xs-small text-center">
-                  {" "}
-                  {_su ? "Super User" : "Normal User"}
-                </div>
-              </PostForm>
+            <div>
               <PostForm
                 action="/updateUserStatus"
                 formRef={statusToggleForm}
                 hideBtn={true}
               >
-                <div className="form-check form-switch">
-                  <input type="hidden" name="userId" value={user._id} />
-                  <input type="hidden" name="status" value="inactive" />
-                  <input
-                    name="status"
-                    value="active"
-                    className="form-check-input"
-                    type="checkbox"
-                    id="flexSwitchCheckDefault"
-                    onChange={handleStatusToggle}
-                    checked={status}
-                  />
+                {/* User ID always sent */}
+                <input type="hidden" name="userId" value={user._id} />
+
+                {/* Status Toggle */}
+                <div className="d-flex align-items-center">
+                  <div className="form-check form-switch">
+                    <input type="hidden" name="status" value="inactive" />
+                    <input
+                      name="status"
+                      value="active"
+                      className="form-check-input"
+                      type="checkbox"
+                      id="statusSwitch"
+                      onChange={() => toggleFlag("status")}
+                      checked={flags.status}
+                    />
+                  </div>
+                  <div className="xs-small text-center">
+                    {flags.status ? "Active" : "Inactive"}
+                  </div>
                 </div>
-                <div className="xs-small text-center">
-                  {" "}
-                  {status ? "Active" : "Inactive"}
+
+                {/* Super User Toggle */}
+                <div className="d-flex align-items-center">
+                  <div className="form-check form-switch">
+                    <input
+                      name="_su"
+                      value={flags._su ? "1" : "1"}
+                      className="form-check-input"
+                      type="checkbox"
+                      id="suSwitch"
+                      onChange={() => toggleFlag("_su")}
+                      checked={flags._su}
+                    />
+                  </div>
+                  <div className="xs-small text-center">
+                    {flags._su ? "SuperUser" : "Normal User"}
+                  </div>
+                </div>
+
+                {/* Youtuber Toggle */}
+                <div className="d-flex align-items-center">
+                  <div className="form-check form-switch">
+                    <input
+                      name="_y"
+                      value={flags._y ? "1" : "1"}
+                      className="form-check-input"
+                      type="checkbox"
+                      id="ySwitch"
+                      onChange={() => toggleFlag("_y")}
+                      checked={flags._y}
+                    />
+                  </div>
+                  <div className="xs-small text-center">
+                    {flags._y ? "Youtuber" : "Subscriber"}
+                  </div>
                 </div>
               </PostForm>
             </div>
@@ -150,9 +162,9 @@ export const UserInfo = ({ user, refresh }) => {
             />
             <WalletButton2
               icon={<FaRegUserCircle />}
-              class={status ? "btn-success" : "btn-danger"}
+              class={flags.status ? "btn-success" : "btn-danger"}
               title="ACCOUNT STATUS"
-              amount={status ? "Active" : "Inactive"}
+              amount={flags.status ? "Active" : "Inactive"}
             />
 
             <button

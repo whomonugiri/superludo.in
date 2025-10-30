@@ -76,7 +76,8 @@ export const ChatInput = () => {
         toastr.error(t(res.data.message));
       }
     } catch (error) {
-      toastr.error(error.response ? error.response.data : error.message);
+      console.log(error);
+      toastr.error(error.response ? error.response.data.message : error.message);
     }
   };
   const handleImageChange = async (e) => {

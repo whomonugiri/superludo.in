@@ -35,7 +35,7 @@ export const Sidebar = () => {
           ></i>
           <a className="navbar-brand m-0">
             <img
-              src="/assets/logo.png?v=45"
+              src="/assets/logo.png"
               className="navbar-brand-img h-100"
               alt="main_logo"
             />
@@ -86,6 +86,11 @@ export const Sidebar = () => {
                     icon={<CgDice6 />}
                     to="/manage-speed-matches"
                     title="Speed Ludo Matches"
+                  />
+                  <SidebarNavItem
+                    icon={<CgDice6 />}
+                    to="/manage-quick-matches"
+                    title="Quick Ludo Matches"
                   />
                 </>
               )}

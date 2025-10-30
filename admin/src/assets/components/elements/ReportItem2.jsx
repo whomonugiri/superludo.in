@@ -1,4 +1,13 @@
-export const ReportItem2 = ({ title, value, cash, reward, bonus, users }) => {
+export const ReportItem2 = ({
+  title,
+  value,
+  cash,
+  reward,
+  bonus,
+  users,
+  otp,
+}) => {
+  const otpmoney = otp * 0.59;
   return (
     <>
       {" "}
@@ -27,6 +36,8 @@ export const ReportItem2 = ({ title, value, cash, reward, bonus, users }) => {
             <button className="btn btn-dark p-1 px-3 m-0">
               Bonus Wallet : <span className="">₹ {bonus}</span>
             </button>
+
+          
           </div>
         </div>
       </div>

@@ -49,12 +49,49 @@ export const GameItem = ({ game }) => {
               <>
                 <div className="col-12 col-md-6 p-1">
                   <div className="fw-bold text-dark small">
+                    Amounts (seperated by comma)
+                  </div>
+                  <input
+                    name="amounts"
+                    type="string"
+                    defaultValue={game.amounts}
+                    className="form-control form-control-sm"
+                  />
+                </div>
+                <div className="col-12 col-md-6 p-1">
+                  <div className="fw-bold text-dark small">
                     Game Duration (in minutes)
                   </div>
                   <input
                     name="duration"
                     type="number"
                     defaultValue={game.duration}
+                    className="form-control form-control-sm"
+                  />
+                </div>
+                <div className="col-12 col-md-6 p-1">
+                  <div className="fw-bold text-dark small">
+                    Lite Game Duration (in minutes)
+                  </div>
+                  <input
+                    name="durationLite"
+                    type="number"
+                    step="0.1"
+                    defaultValue={game.durationLite}
+                    className="form-control form-control-sm"
+                  />
+                </div>
+              </>
+            )}
+
+            {game.title == "Quick Ludo" && (
+              <>
+                <div className="col-12 col-md-6 p-1">
+                  <div className="fw-bold text-dark small">Total Moves</div>
+                  <input
+                    name="moves"
+                    type="number"
+                    defaultValue={game.moves}
                     className="form-control form-control-sm"
                   />
                 </div>
@@ -71,6 +108,7 @@ export const GameItem = ({ game }) => {
                 </div>
               </>
             )}
+
             {game.title == "Classic Manual" && (
               <>
                 <div className="col-12 col-md-6 p-1">

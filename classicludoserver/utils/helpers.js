@@ -63,7 +63,7 @@ export const toggleTurn = (room) => {
     }
     clearInterval(room.waitTimeRef);
     room.waitTimeRef = null;
-    room.waitTimer = 13000;
+    room.waitTimer = 10000;
     room.movableSteps = 0;
     room.sixCount = 0;
     return d;
@@ -154,15 +154,15 @@ export const startTimer = (room, colors, io) => {
       }, 1000 * 60 * 5);
       return;
     } else {
-      if (!room.waitTimeRef && room.waitTimer == 13000) {
+      if (!room.waitTimeRef && room.waitTimer == 10000) {
         room.killing = false;
         room.waitTimeRef = setInterval(() => {
-          io.to(room.code).emit("timerProgress", room.waitTimer / 13000);
+          io.to(room.code).emit("timerProgress", room.waitTimer / 10000);
           room.waitTimer -= 100;
           if (room.waitTimer < 1) {
             clearInterval(room.waitTimeRef);
             room.waitTimeRef = null;
-            room.waitTimer = 13000;
+            room.waitTimer = 10000;
             sendRunDice(
               room,
               {
@@ -445,7 +445,7 @@ export const movePlayer = (room, res, colors, io) => {
 
             clearInterval(room.waitTimeRef);
             room.waitTimeRef = null;
-            room.waitTimer = 13000;
+            room.waitTimer = 10000;
             room.movableSteps = 0;
           } else {
             room.lastDiceValue = 0;
@@ -490,13 +490,13 @@ export const checkWinningStatus = (room, res, colors) => {
     // //console.log("bwin :" + bluewinner + ", greenlife :" + greenteam.life);
     // //console.log("gwin :" + greenwinner + ", bluelife :" + blueteam.life);
 
-    if (bluewinner > 3 || greenteam.life < 0 || greenteam.exit) {
+    if (bluewinner > 3 || greenteam.life < 3 || greenteam.exit) {
       ob.winnerColor = "blue";
       ob.winnerId = blueteam.userId;
       ob.looserColor = "green";
       ob.looserId = greenteam.userId;
       ob.reason = "green user exited the game";
-    } else if (greenwinner > 3 || blueteam.life < 0 || blueteam.exit) {
+    } else if (greenwinner > 3 || blueteam.life < 3 || blueteam.exit) {
       ob.winnerColor = "green";
       ob.winnerId = greenteam.userId;
       ob.looserColor = "blue";
@@ -576,6 +576,12 @@ export const sendRunDice = (room, res, colors, io) => {
       // res.value = randomNumber(1, 6);
       if (res.magic && res.magic > 0) {
         res.value = res.magic;
+      }
+
+      if (room.sixCount == 1 && res.value == 6) {
+        while (res.value == 6) {
+          res.value = getRandomWithProbability();
+        }
       }
       // res.value = 1;
       if (res.value == 6) room.sixCount++;
@@ -772,7 +778,7 @@ export const moveGoti = (room, res, colors, io) => {
       room.playerIsMoving = false;
       clearInterval(room.waitTimeRef);
       room.waitTimeRef = null;
-      room.waitTimer = 13000;
+      room.waitTimer = 10000;
       room.movableSteps = 0;
       startTimer(room, colors, io);
       // }

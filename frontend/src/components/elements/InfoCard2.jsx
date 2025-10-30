@@ -4,7 +4,7 @@ export const InfoCard2 = (props) => {
   return (
     <>
       <div
-        className="alert alert-primary d-flex align-items-center gap-2 border border-primary fw-bold"
+        className="alert alert-warning d-flex align-items-center gap-2 border border-warning fw-bold rounded-4 "
         role="alert"
       >
         <div className="small">{props.text}</div>

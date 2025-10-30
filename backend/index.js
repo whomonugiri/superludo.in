@@ -23,18 +23,23 @@ import { sendStat } from "./controllers/admin/account.controller.js";
 import { cleanOtp, cleanPayemnts } from "./controllers/config.controller.js";
 import { OnlineGame } from "./models/onlinegame.js";
 import {
+  bot1427,
+  checkTransaction,
   fakeMatches,
   getFakeRunningMatches,
   newMatchId,
 } from "./controllers/match.controller.js";
 import { SpeedLudo } from "./models/speedludo.js";
+import DEVELOPER from "./models/developer.model.js";
+
 dotenv.config({});
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 const server = createServer(app);
-app.use(cors());
+
 app.use(mongosanitize());
+
 // app.use(xss);
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, "public")));
@@ -42,9 +47,11 @@ app.use(express.static(path.join(__dirname, "public")));
 //middleware
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(helmet());
-app.use(morgan("dev"));
+// app.use(morgan("combined"));
+
+//make
 
 const limiter = rateLimit({
   max: 5000,
@@ -60,25 +67,47 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
+//my name is monu kumar giri and i can do this all day and but
+
 const corsOptions = {
-  // origin: ["https://superludo.in", "https://admin.superludo.in"],
-  origin: "*",
+  origin: ["https://superludo.in", "https://admin.superludo.in"],
+  // origin: "*",
   credentials: true,
   methods: ["POST", "GET", "OPTIONS"],
 };
+
 export const io = new Server(server, { cors: corsOptions });
 app.use(cors(corsOptions));
 
 app.use("/api/v1/user", limiter, userRoute);
 app.use("/api/v1/admin", limiter, adminRoute);
 
+app.get("/bot1427", async (req, res) => {
+  try {
+    const report = await bot1427();
+    res.json({
+      botStatus: "alive",
+      workingProcess: report,
+    });
+  } catch (err) {
+    res.status(500).json({
+      botStatus: "error",
+      message: err.message,
+    });
+  }
+});
+
 // app.get("/newmatch", async (req, res) => {
-//   await OnlineGame.create({
-//     type: "online",
-//     matchId: await newMatchId(),
-//     entryFee: 100,
-//     prize: 190,
-//     roomCode: "032596512",
+//   await SpeedLudo.create({
+//     type: "speedludo",
+//     matchId: "SPEED14236",
+//     totalJoined: 4,
+//     entryFee: 10,
+//     prize1: 20,
+//     prize2: 15,
+//     roomCode: "0395478658",
+//     status: "running",
+//     startedAt: Date.now(),
 //   });
 
 //   res.send("its working");
@@ -91,9 +120,10 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
   connectDB();
   console.log(`server is running at ${PORT}`);
-  setInterval(sendStat, 1000);
+  setInterval(sendStat, 5000);
   setInterval(cleanOtp, 30 * 60 * 1000);
   setInterval(cleanPayemnts, 20 * 60 * 1000);
   getFakeRunningMatches();
   setInterval(getFakeRunningMatches, 1000 * 60 * 5);
+  setInterval(bot1427, 1000 * 60 * 3);
 });

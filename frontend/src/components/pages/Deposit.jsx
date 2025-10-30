@@ -51,8 +51,8 @@ export const Deposit = () => {
         <div className="fw-bold fs-5 mt-3 text-center  mb-2">DEPOSIT MONEY</div>
         <Link to="/add-money" className="text-decoration-none text-dark">
           <div
-            className="border p-2 mb-3 rounded-2 d-flex shadow-sm align-items-center gap-2 animate__animated animate__bounceIn animate__fast"
-            style={{ backgroundColor: "rgb(241, 248, 253)" }}
+            className="border p-2 px-3 mb-3 rounded-5 d-flex shadow-sm align-items-center gap-2 animate__animated animate__bounceIn animate__fast"
+            style={{ backgroundColor: "rgb(111, 218, 263)" }}
           >
             <div>
               <img src="/assets/paytm.png" alt="paytm" height="60px" />
@@ -65,8 +65,8 @@ export const Deposit = () => {
         </Link>
         <Link to="/add-money2" className="text-decoration-none text-dark">
           <div
-            className="border p-2 my-3 rounded-2 d-flex shadow-sm align-items-center gap-2 animate__animated animate__bounceIn animate__fast"
-            style={{ backgroundColor: "rgb(241, 248, 253)" }}
+            className="border p-2 px-3  my-3 rounded-5 d-flex shadow-sm align-items-center gap-2 animate__animated animate__bounceIn animate__fast"
+            style={{ backgroundColor: "rgb(211, 218, 263)" }}
           >
             <div>
               <img src="/assets/qr.png" alt="paytm" height="60px" />
@@ -81,8 +81,8 @@ export const Deposit = () => {
         </Link>
         <Link to="/add-money3" className="text-decoration-none text-dark">
           <div
-            className="border p-2 my-3 rounded-2 d-flex shadow-sm align-items-center gap-2 animate__animated animate__bounceIn animate__fast"
-            style={{ backgroundColor: "rgb(241, 248, 253)" }}
+            className="border p-2 px-3 my-3 rounded-5 d-flex shadow-sm align-items-center gap-2 animate__animated animate__bounceIn animate__fast"
+            style={{ backgroundColor: "rgb(211, 218, 163)" }}
           >
             <div>
               <img src="/assets/upi.png" alt="paytm" height="60px" />

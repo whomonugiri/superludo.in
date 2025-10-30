@@ -14,7 +14,7 @@ export const SidebarButton = (props) => {
           $("#sidebar-close-btn").trigger("click");
         }}
       >
-        <div className="d-flex justify-content-between align-items-center py-1 px-2 my-2 fs-4">
+        <div className="d-flex justify-content-between align-items-center py-1 px-2 my-2 fs-5 mb-2">
           <div className="d-flex align-items-center gap-2">
             {props.icon} {props.title}
           </div>
@@ -22,7 +22,6 @@ export const SidebarButton = (props) => {
             <FaAngleRight />
           </div>
         </div>
-        <div className="border-bottom"></div>
       </NavLink>
     </>
   );

@@ -9,8 +9,8 @@ export const PMatchOnline = ({ match }) => {
   return (
     <>
       {" "}
-      <div className="rounded-2 bg-success border my-3 animate__animated animate__backInLeft animate__fast">
-        <div className="p-1 px-2 bg-overlay">
+      <div className="rounded-2 bg-danger border my-3 animate__animated animate__backInLeft animate__fast">
+        <div className="p-1 px-2">
           <div className="border-bottom border-2 py-1 d-flex justify-content-between">
             <div className="x-small fw-bold text-white d-flex gap-2">
               {t("playing_for")}{" "}

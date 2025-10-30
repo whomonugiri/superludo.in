@@ -43,6 +43,9 @@ export const Withdraw = () => {
     minWithdraw,
     maxWithdraw,
     withdrawLimit,
+    withdrawStart,
+    withdrawEnd,
+    withdrawActive,
     upiId,
     bankName,
     bankAccountNo,
@@ -154,10 +157,19 @@ export const Withdraw = () => {
 
   return (
     <>
-      
+      {/* {!kyc && (
+        <Link
+          to={"/profile"}
+          className="d-block fw-bold text-decoration-none animate__animated animate__pulse animate__infinite bg-primary text-white text-center rounded rounded-4 my-3 p-2"
+        >
+          {t("complete_kyc_msg")}
+        </Link>
+      )} */}
 
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
         <Card class="p-0">
+          <div className="fw-bold text-center mb-3">WITHDRAW MONEY</div>
+
           <div className="">
             <Select
               icon={<GiTakeMyMoney />}
@@ -209,35 +221,35 @@ export const Withdraw = () => {
             <div className="d-flex jsutify-content-around mb-2">
               <Button2
                 text="₹ 100"
-                class=""
+                class="btn-outline-danger text-nowrap"
                 working={false}
                 action={() => add(100)}
               />
 
               <Button2
                 text="₹ 500"
-                class=""
+                class="btn-outline-danger text-nowrap"
                 working={false}
                 action={() => add(500)}
               />
 
               <Button2
                 text="₹ 1000"
-                class=""
+                class="btn-outline-danger text-nowrap"
                 working={false}
                 action={() => add(1000)}
               />
 
               <Button2
                 text="₹ 2000"
-                class=""
+                class="btn-outline-danger text-nowrap"
                 working={false}
                 action={() => add(2000)}
               />
 
               <Button2
                 text="₹ 5000"
-                class=""
+                class="btn-outline-danger text-nowrap"
                 working={false}
                 action={() => add(5000)}
               />
@@ -245,7 +257,7 @@ export const Withdraw = () => {
             <div className="d-flex gap-2">
               <Button1
                 text={t("submit_withdraw_btn")}
-                class="w-100 btn-primary"
+                class="w-100 btn-danger"
                 working={working}
                 action={submitPayment}
               />
@@ -256,9 +268,29 @@ export const Withdraw = () => {
               <b>{maxWithdraw}</b>, {t("withdraw_limit_1")}{" "}
               <b>{withdrawLimit}</b> {t("withdraw_limit_2")}
             </div>
+            <div className="fw-bold text-danger">
+              {!!withdrawActive && (
+                <span>
+                  Withdraw Timing : {convertTo12Hour(withdrawStart)} to{" "}
+                  {convertTo12Hour(withdrawEnd)}
+                </span>
+              )}
+
+              {!withdrawActive && <span>WITHDRAW IS CLOSED TODAY</span>}
+            </div>
           </div>
         </Card>
       </motion.div>
     </>
   );
 };
+
+function convertTo12Hour(time) {
+  // time format: "HH:MM"
+  let [hour, minute] = time.split(":").map(Number);
+
+  let ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12; // convert 0 -> 12, 13 -> 1, etc.
+
+  return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+}

@@ -8,7 +8,7 @@ const Button2 = (props) => {
         className={
           `${
             props.working && "disabled"
-          } m-1 btn btn-outline-primary btn-sm d-flex justify-content-center align-items-center gap-1 ` +
+          } m-1 btn  btn-sm d-flex justify-content-center align-items-center gap-1 ` +
           props.class
         }
       >

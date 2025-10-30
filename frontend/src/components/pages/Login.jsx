@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import $ from "jquery";
+import { FaMobileAlt } from "react-icons/fa";
+
 import {
   resetTimer,
   saveOtpRef,
@@ -17,6 +19,7 @@ import axios from "axios";
 import { API_HOST, API_SEND_OTP } from "../../utils/constants";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { FaWhatsapp } from "react-icons/fa6";
 export const Login = () => {
   const [working, setWorking] = useState(false);
   const navigate = useNavigate();
@@ -65,29 +68,32 @@ export const Login = () => {
     <>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
         <Card>
+          <div className="fw-bold text-center fs-3 text-danger mb-3">
+            LOGIN TO PLAY
+          </div>
           <Input1
-            icon={<MdCall />}
-            label={t("mobile_number_label")}
+            icon={<FaMobileAlt />}
+            label={"Enter 10 Digit Mobile Number"}
             id="login_mobile_no"
             type="number"
           />
 
-          <div className="small">
+          <div className="small text-secondary" style={{ fontSize: "12px" }}>
             {t("legal_terms_disclaimer_p1")}{" "}
-            <a href="" className="text-decoration-none text-primary">
+            <Link to="/terms" className="text-decoration-none text-primary">
               {t("legal_terms_disclaimer_p2")}
-            </a>{" "}
+            </Link>{" "}
             {t("legal_terms_disclaimer_p3")}
           </div>
 
           <Button1
             text={t("send_otp_btn")}
             action={handleSendOtp}
-            class="w-100 mt-2 btn-primary"
+            class="w-100 mt-2 btn-danger"
             working={working}
           />
-          <hr></hr>
-          <div className="text-center">
+
+          <div className="text-center mt-3">
             {t("no_account_note")}{" "}
             <Link to="/register" className="text-decoration-none text-primary">
               {t("register_link")}

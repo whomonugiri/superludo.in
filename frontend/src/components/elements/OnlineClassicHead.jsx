@@ -9,17 +9,17 @@ export const OnlineClassicHead = (props) => {
   return (
     <>
       {" "}
-      <div className="mt-3 border-bottom">
-        <div className="d-flex justify-content-between mb-2 align-items-center">
-          <div className="fw-bold  fs-5 mb-2 ">{t("classic_online_label")}</div>
+      <div className="mt-3 border-bottom rounded rounded-3 ">
+        <div className="text-center justify-content-between mb-2 align-items-center">
+          <div className="fw-bold  fs-5 mb-2 ">CLASSIC ONLINE</div>
           <div className="">
             {/* //user */}
             <button
-              className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+              className="btn btn-outline-danger mx-auto btn-sm d-flex align-items-center gap-1"
               data-bs-toggle="offcanvas"
               data-bs-target="#avatars"
             >
-              <MdOutlineInfo /> {t("guide_btn")}
+              <MdOutlineInfo /> HOW TO PLAY
             </button>
 
             <div

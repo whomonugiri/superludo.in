@@ -4,7 +4,7 @@ import { Input1 } from "../elements/Input1";
 import Button1 from "../elements/Button1";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import { FaRegUser } from "react-icons/fa6";
+import { FaRegUser, FaWhatsapp } from "react-icons/fa6";
 import axios from "axios";
 import { API_HOST, API_SEND_OTP } from "../../utils/constants";
 import $ from "jquery";
@@ -80,6 +80,9 @@ export const Register = () => {
     <>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
         <Card>
+          <div className="fw-bold text-center fs-3 text-danger mb-3">
+            CREATE NEW ACCOUNT
+          </div>
           <Input1
             icon={<FaRegUser />}
             label={t("full_name_label")}
@@ -102,11 +105,11 @@ export const Register = () => {
             type="text"
           />
 
-          <div className="small">
+          <div className="small text-secondary" style={{ fontSize: "12px" }}>
             {t("legal_terms_disclaimer_p1")}{" "}
-            <a href="" className="text-decoration-none text-primary">
+            <Link to="/terms" className="text-decoration-none text-primary">
               {t("legal_terms_disclaimer_p2")}
-            </a>{" "}
+            </Link>{" "}
             {t("legal_terms_disclaimer_p3")}
           </div>
 
@@ -114,10 +117,10 @@ export const Register = () => {
             action={handleSubmit}
             text={t("submit_btn")}
             working={working}
-            class="w-100 mt-2 btn-primary"
+            class="w-100 mt-2 btn-danger"
           />
-          <hr></hr>
-          <div className="text-center">
+
+          <div className="text-center mt-3">
             {t("account_note")}{" "}
             <Link to="/login" className="text-decoration-none text-primary">
               {t("login_link")}

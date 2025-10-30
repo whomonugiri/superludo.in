@@ -21,6 +21,7 @@ export const Header = () => {
     runningMatch,
     onlineMatch,
     speedMatch,
+    quickMatch,
 
     _isSuperadmin,
     _access,
@@ -107,7 +108,7 @@ export const Header = () => {
                       runningMatch > 0 ? "btn-primary" : "btn-outline-primary"
                     } p-0 px-2 py-1`}
                   >
-                    Manual Matches : {runningMatch}
+                    Manual : {runningMatch}
                   </div>
                 </Link>
 
@@ -117,7 +118,7 @@ export const Header = () => {
                       onlineMatch > 0 ? "btn-primary" : "btn-outline-primary"
                     } p-0 px-2 py-1`}
                   >
-                    Online Matches : {onlineMatch}
+                    Online : {onlineMatch}
                   </div>
                 </Link>
 
@@ -127,7 +128,17 @@ export const Header = () => {
                       speedMatch > 0 ? "btn-primary" : "btn-outline-primary"
                     } p-0 px-2 py-1`}
                   >
-                    SpeedLudo : {speedMatch}
+                    Speed : {speedMatch}
+                  </div>
+                </Link>
+
+                <Link to="/manage-quick-matches">
+                  <div
+                    className={`text-nowrap btn btn-sm animate__headShake animate__infinite ${
+                      quickMatch > 0 ? "btn-primary" : "btn-outline-primary"
+                    } p-0 px-2 py-1`}
+                  >
+                    Quick : {quickMatch}
                   </div>
                 </Link>
               </>

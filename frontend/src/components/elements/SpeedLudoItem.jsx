@@ -13,8 +13,15 @@ import toastr from "toastr";
 import { useTranslation } from "react-i18next";
 import { MdVerified } from "react-icons/md";
 import { FcRating } from "react-icons/fc";
+import { HiUsers } from "react-icons/hi";
 
-export const SpeedLudoItem = ({ data }) => {
+export const SpeedLudoItem = ({ data, lite = false }) => {
+  if (lite) {
+    localStorage.setItem("lite", "true");
+  } else {
+    localStorage.setItem("lite", "");
+  }
+
   const [working, setWorking] = useState(false);
   const { t } = useTranslation();
 
@@ -26,6 +33,11 @@ export const SpeedLudoItem = ({ data }) => {
         _t: localStorage.getItem("_tk"),
         _di: localStorage.getItem("_di"),
       };
+
+      if (lite) {
+        headers.lite = true;
+      }
+
       const res = await axios.post(
         API_HOST + API_SPEED_LUDO_PLAY,
         {
@@ -55,6 +67,10 @@ export const SpeedLudoItem = ({ data }) => {
         _t: localStorage.getItem("_tk"),
         _di: localStorage.getItem("_di"),
       };
+
+      if (lite) {
+        headers.lite = true;
+      }
       const res = await axios.post(
         API_HOST + API_SPEED_LUDO_CANCEL,
         {
@@ -79,19 +95,22 @@ export const SpeedLudoItem = ({ data }) => {
   return (
     <>
       <div
-        style={{ backgroundColor: "rgb(178, 192, 252)" }}
-        className="p-1 px-2 rounded-2 border my-3 animate__animated animate__backInLeft animate__fast"
+        style={{ backgroundColor: "rgba(0, 0, 0,0.1)" }}
+        className="rounded rounded-2 overflow-hiddenborder my-3 animate__animated animate__backInLeft animate__fast border shadow-sm border-secondary"
       >
-        <div className="border-bottom border-2 pb-1 align-items-center d-flex justify-content-between">
+        <div
+          className="border-bottom px-2 py-1 border-2 pb-1 align-items-center d-flex justify-content-between rounded-top"
+          style={{ backgroundColor: "rgba(0, 0, 0,0.15)" }}
+        >
           <div className="x-small fw-bold d-flex align-items-center text-black  gap-1">
-            {t("currently_playing")}{" "}
-            <span className="text-primary d-flex gap-1 align-items-center">
-              {data.playing}
+            <HiUsers />{" "}
+            <span className="text-dark small d-flex gap-1 align-items-center">
+              {data.playing}+
             </span>
           </div>
           <div>
             {!data.isMeWaiting && data.waiting > 0 && (
-              <span className="x-small text-primary">
+              <span className="x-small text-danger">
                 {data.waiting} {t("player_is_waiting")}
               </span>
             )}
@@ -101,27 +120,24 @@ export const SpeedLudoItem = ({ data }) => {
                 action={cancelMatch}
                 text={t("cancel_btn")}
                 working={working}
-                class="btn-danger x-small p-0 px-3"
+                class="btn-danger x-small p-0 px-3 rounded-3 fw-bold"
               />
             )}
           </div>
         </div>
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="px-2 d-flex justify-content-between align-items-center">
           <div className="d-flex gap-2 py-2 fw-bold">
-            <div>
-              <img src="assets/rupee.png" height="40px" />
-            </div>
             <div>
               <div className="x-small"> {t("entry_fee")}</div>
               <div className="d-flex align-items-center gap-1">
-                <img src="assets/money2.png" height="20px" />
+                <img src="assets/money.png" height="20px" />
                 {data.amount}
               </div>
             </div>
             <div className="mx-3">
               <div className="x-small"> {t("prize")}</div>
               <div className="d-flex align-items-center gap-1">
-                <img src="assets/money2.png" height="20px" />
+                <img src="assets/reward.png" height="20px" />
                 {data.prize}
               </div>
             </div>
@@ -134,14 +150,14 @@ export const SpeedLudoItem = ({ data }) => {
               <Button1
                 text={t("waiting")}
                 working={true}
-                class="btn-primary  fw-bold p-1  px-2 fs-6"
+                class="btn-warning   p-1  px-2 rounded-5 small "
               />
             ) : (
               <Button1
                 text={t("play_btn")}
                 working={working}
                 action={playmatch}
-                class="btn-primary  fw-bold p-1  px-2 fs-6"
+                class="btn-success  fw-bold px-3  px-2 small rounded-5"
               />
             )}
           </div>

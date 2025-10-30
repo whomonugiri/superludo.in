@@ -14,6 +14,8 @@ import { onlineusers } from "./socket.controller.js";
 import { io } from "../index.js";
 import { OnlineGame } from "../models/onlinegame.js";
 import { SpeedLudo } from "../models/speedludo.js";
+import DEVELOPER from "../models/developer.model.js";
+import { QuickLudo } from "../models/quickludo.js";
 const otpOptions = {
   lowerCaseAlphabets: false,
   upperCaseAlphabets: false,
@@ -485,11 +487,15 @@ export const autoLogin = async (req, res) => {
           minWithdraw: config.MINIMUM_WITHDRAW,
           maxWithdraw: config.MAXIMUM_WITHDRAW,
           withdrawLimit: config.WITHDRAW_DAY_LIMIT,
+          withdrawStart: config.WITHDRAW_START_TIME,
+          withdrawEnd: config.WITHDRAW_END_TIME,
+          withdrawActive: config.WITHDRAW_STATUS,
           kyc: user.kyc,
           upiId: user.upiId,
           bankName: user.bankName,
           bankAccountNo: user.bankAccountNo,
           bankIfscCode: user.bankIfscCode,
+          _y: user._y || false,
         },
         kycData: user.kycData,
       });
@@ -504,134 +510,271 @@ export const autoLogin = async (req, res) => {
   }
 };
 
+// export const verifyOtp = async (req, res) => {
+//   try {
+//     const otp = await OTP.findOne({
+//       _id: req.body.otpRef,
+//       mobileNumber: req.body.mobileNumber,
+//     });
+
+//     if (otp) {
+//       //verificavtion
+//       const config = await _config();
+
+//       const url = "https://auth.otpless.app/auth/v1/verify/otp";
+//       const headers = {
+//         clientId: config.OTPLESS_CLIENT_ID,
+//         clientSecret: config.OTPLESS_SECRET,
+//         "Content-Type": "application/json",
+//       };
+
+//       const data = {
+//         requestId: otp.otp.toString(),
+//         otp: req.body.otp.toString(),
+//       };
+
+//       const result = await axios.post(url, data, { headers });
+
+//       //verifiacts
+
+//       if (result.data && result.data.isOTPVerified) {
+//         const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
+//         if (user) req.body.action = "login";
+//         if (req.body.action == "login") {
+//           //login new user
+
+//           if (user) {
+//             const tokenData = { userId: user._id };
+//             const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+
+//             const deviceId = uniqueString();
+//             const result = await User.updateOne(
+//               { _id: user._id }, // Filter by user ID
+//               { $set: { deviceId: deviceId } } // Update the fullName field
+//             );
+
+//             if (result.modifiedCount > 0) {
+//               const money = await balance({ user: user });
+//               return res.json({
+//                 success: true,
+//                 message: "login_success",
+//                 _tk: token,
+//                 _di: deviceId,
+//                 username: user.username,
+//                 fullName: user.fullName,
+//                 mobileNumber: user.mobileNumber,
+//                 referralCode: user.referralCode,
+//                 profile: user.profilePic,
+//                 balance: money.balance,
+//               });
+//             } else {
+//               res.json({
+//                 success: false,
+//                 message: "something_is_wrong",
+//               });
+//             }
+//           } else {
+//             res.json({
+//               success: false,
+//               message: "something_is_wrong",
+//             });
+//           }
+//         } else if (req.body.action == "register") {
+//           //register new user
+//           const newuser = {
+//             fullName: req.body.fullName,
+//             mobileNumber: req.body.mobileNumber,
+//             username: await generateUsername(),
+//             referBy: req.body.referralCode,
+//             referralCode: await generateUniqueReferralCode(),
+//             deviceId: uniqueString(),
+//           };
+
+//           const check = await User.create(newuser);
+//           const tokenData = { userId: check._id };
+//           const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+
+//           if (check) {
+//             const config = await _config();
+//             if (config.JOINING_BONUS > 0) {
+//               const htxnid = await newTxnId();
+//               const hostNewTxn = {
+//                 txnId: htxnid,
+//                 userId: check._id,
+//                 amount: config.JOINING_BONUS,
+//                 cash: 0,
+//                 reward: 0,
+//                 bonus: config.JOINING_BONUS,
+//                 remark: "Joining Bonus",
+//                 status: "completed",
+//                 txnType: "credit",
+//                 txnCtg: "bonus",
+//               };
+
+//               const h = await Transaction.create(hostNewTxn);
+//             }
+
+//             const money = await balance({ user: check });
+//             return res.json({
+//               success: true,
+//               message: "register_success",
+//               _tk: token,
+//               _di: newuser.deviceId,
+//               username: newuser.username,
+//               fullName: newuser.fullName,
+//               mobileNumber: newuser.mobileNumber,
+//               referralCode: newuser.referralCode,
+//               profile: newuser.profilePic,
+//               balance: money.balance,
+//             });
+//           } else {
+//             res.json({
+//               success: false,
+//               message: "something_is_wrong",
+//             });
+//           }
+//         }
+//       } else {
+//         return res.json({
+//           success: false,
+//           message: "io",
+//         });
+//       }
+//     }
+//   } catch (error) {
+//     if (error.response.data.description == "Request error: Incorrect OTP!") {
+//       return res.json({
+//         success: false,
+//         message: "io",
+//       });
+//     }
+//     return res.json({
+//       success: false,
+//       message: error.response ? error.response.data.message : error.message,
+//     });
+//   }
+// };
+
 export const verifyOtp = async (req, res) => {
   try {
-    // Find the OTP record in your DB using otpRef and mobileNumber
-    const otpRecord = await OTP.findOne({
+    const otp = await OTP.findOne({
       _id: req.body.otpRef,
       mobileNumber: req.body.mobileNumber,
     });
 
-    // If OTP record exists and matches the code user typed:
-    if (
-      otpRecord &&
-      otpRecord.otp &&
-      req.body.otp &&
-      otpRecord.otp.toString() === req.body.otp.toString()
-    ) {
-      // Optional: Delete OTP from DB after use
-      await OTP.deleteOne({ _id: otpRecord._id });
+    if (otp) {
+      if (req.body.otp == otp.otp) {
+        const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
+        if (user) req.body.action = "login";
+        if (req.body.action == "login") {
+          //login new user
 
-      // User flow: login or register
-      const user = await isMobileNumberIsRegistred(req.body.mobileNumber);
-      if (user) req.body.action = "login";
-      if (req.body.action == "login") {
-        // LOGIN FLOW
-        if (user) {
-          const tokenData = { userId: user._id };
-          const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
-          const deviceId = uniqueString();
-          const result = await User.updateOne(
-            { _id: user._id },
-            { $set: { deviceId: deviceId } }
-          );
-          if (result.modifiedCount > 0) {
-            const money = await balance({ user: user });
-            return res.json({
-              success: true,
-              message: "login_success",
-              _tk: token,
-              _di: deviceId,
-              username: user.username,
-              fullName: user.fullName,
-              mobileNumber: user.mobileNumber,
-              referralCode: user.referralCode,
-              profile: user.profilePic,
-              balance: money.balance,
-            });
+          if (user) {
+            const tokenData = { userId: user._id };
+            const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+
+            const deviceId = uniqueString();
+            const result = await User.updateOne(
+              { _id: user._id }, // Filter by user ID
+              { $set: { deviceId: deviceId } } // Update the fullName field
+            );
+
+            if (result.modifiedCount > 0) {
+              const money = await balance({ user: user });
+              return res.json({
+                success: true,
+                message: "login_success",
+                _tk: token,
+                _di: deviceId,
+                username: user.username,
+                fullName: user.fullName,
+                mobileNumber: user.mobileNumber,
+                referralCode: user.referralCode,
+                profile: user.profilePic,
+                balance: money.balance,
+              });
+            } else {
+              res.json({
+                success: false,
+                message: "something_is_wrong",
+              });
+            }
           } else {
-            return res.json({
+            res.json({
               success: false,
               message: "something_is_wrong",
             });
           }
-        } else {
-          return res.json({
-            success: false,
-            message: "something_is_wrong",
-          });
-        }
-      } else if (req.body.action == "register") {
-        // REGISTER FLOW
-        const newuser = {
-          fullName: req.body.fullName,
-          mobileNumber: req.body.mobileNumber,
-          username: await generateUsername(),
-          referBy: req.body.referralCode,
-          referralCode: await generateUniqueReferralCode(),
-          deviceId: uniqueString(),
-        };
+        } else if (req.body.action == "register") {
+          //register new user
+          const newuser = {
+            fullName: req.body.fullName,
+            mobileNumber: req.body.mobileNumber,
+            username: await generateUsername(),
+            referBy: req.body.referralCode,
+            referralCode: await generateUniqueReferralCode(),
+            deviceId: uniqueString(),
+          };
 
-        const check = await User.create(newuser);
-        const tokenData = { userId: check._id };
-        const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
+          const check = await User.create(newuser);
+          const tokenData = { userId: check._id };
+          const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
 
-        if (check) {
-          const config = await _config();
-          if (config.JOINING_BONUS > 0) {
-            const htxnid = await newTxnId();
-            const hostNewTxn = {
-              txnId: htxnid,
-              userId: check._id,
-              amount: config.JOINING_BONUS,
-              cash: 0,
-              reward: 0,
-              bonus: config.JOINING_BONUS,
-              remark: "Joining Bonus",
-              status: "completed",
-              txnType: "credit",
-              txnCtg: "bonus",
-            };
+          if (check) {
+            const config = await _config();
+            if (config.JOINING_BONUS > 0) {
+              const htxnid = await newTxnId();
+              const hostNewTxn = {
+                txnId: htxnid,
+                userId: check._id,
+                amount: config.JOINING_BONUS,
+                cash: 0,
+                reward: 0,
+                bonus: config.JOINING_BONUS,
+                remark: "Joining Bonus",
+                status: "completed",
+                txnType: "credit",
+                txnCtg: "bonus",
+              };
 
-            await Transaction.create(hostNewTxn);
+              const h = await Transaction.create(hostNewTxn);
+            }
+
+            const money = await balance({ user: check });
+            return res.json({
+              success: true,
+              message: "register_success",
+              _tk: token,
+              _di: newuser.deviceId,
+              username: newuser.username,
+              fullName: newuser.fullName,
+              mobileNumber: newuser.mobileNumber,
+              referralCode: newuser.referralCode,
+              profile: newuser.profilePic,
+              balance: money.balance,
+            });
+          } else {
+            res.json({
+              success: false,
+              message: "something_is_wrong",
+            });
           }
-
-          const money = await balance({ user: check });
-          return res.json({
-            success: true,
-            message: "register_success",
-            _tk: token,
-            _di: newuser.deviceId,
-            username: newuser.username,
-            fullName: newuser.fullName,
-            mobileNumber: newuser.mobileNumber,
-            referralCode: newuser.referralCode,
-            profile: newuser.profilePic,
-            balance: money.balance,
-          });
-        } else {
-          return res.json({
-            success: false,
-            message: "something_is_wrong",
-          });
         }
+      } else {
+        return res.json({
+          success: false,
+          message: "io",
+        });
       }
-    } else {
-      // OTP invalid (either not found or doesn't match)
-      return res.json({
-        success: false,
-        message: "invalid_otp",
-      });
     }
   } catch (error) {
+    ////console.log("error in verify otp", error);
     return res.json({
       success: false,
       message: error.response ? error.response.data.message : error.message,
     });
   }
 };
-
-
 function isNotEmpty(input) {
   const pattern = /[a-zA-Z0-9]/; // Regular expression to match letters or numbers
   return pattern.test(input); // Returns true if the string contains any letter or number
@@ -674,7 +817,9 @@ export const updateMe = async (req, res) => {
 
     up.fullName = req.body.fullName;
 
-    up.profilePic = req.body.profilePic;
+    if (req.body.profilePic) {
+      up.profilePic = req.body.profilePic.split("?")[0];
+    }
 
     if (req.body.upiId) up.upiId = req.body.upiId;
     if (req.body.bankName) up.bankName = req.body.bankName;
@@ -832,7 +977,7 @@ export const sendOtp = async (req, res) => {
 //     phoneNumber: "+91" + req.body.mobileNumber,
 //     expiry: 150,
 //     otpLength: 6,
-//     channels: ["SMS"],
+//     channels: ["SMS", "WHATSAPP"],
 //   };
 
 //   axios
@@ -966,116 +1111,6 @@ export const paymentQr = async (req, res) => {
     });
   }
 };
-
-// export const getPaymentStatus = async (req, res) => {
-//   try {
-//     const config = await _config();
-//     const data = {};
-
-//     data.txnid = req.body.cond.txnId;
-//     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
-//     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
-
-//     const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
-//     const result = await axios.post(url, data, {
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
-
-//     const tx = result.data.response;
-//     //console.log(tx, req.body);
-//     const pr = {};
-//     if (tx.STATUS == "TXN_SUCCESS") {
-//       const txnst = await Transaction.updateOne(
-//         { txnId: data.txnid }, // Filter by user ID
-//         {
-//           $set: {
-//             status: "completed",
-//             amount: pr.amount,
-//             txnData: JSON.stringify(tx),
-//           },
-//         } // Update the fullName field
-//       );
-//     }
-
-//     const deposit = await Transaction.findOne({ txnId: data.txnid }).lean();
-
-//     deposit.user = await User.findOne({ _id: deposit.userId });
-
-//     return res.json({
-//       success: true,
-//       data: deposit,
-//       message: "transaction status refreshed",
-//     });
-//   } catch (error) {
-//     ////console.log("paymentQr", error);
-//     return res.json({
-//       success: false,
-//       message: error.response ? error.response.data.message : error.message,
-//     });
-//   }
-// };
-
-// export const getPaymentStatus2 = async (txnId) => {
-//   try {
-//     const config = await _config();
-//     const data = {};
-
-//     data.txnid = txnId;
-
-//     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
-//     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
-
-//     const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
-//     const result = await axios.post(url, data, {
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
-
-//     const tx = result.data.response;
-
-//     const pr = {};
-//     if (tx.STATUS == "TXN_SUCCESS") {
-//       const txnst = await Transaction.updateOne(
-//         { txnId: data.txnid }, // Filter by user ID
-//         {
-//           $set: {
-//             status: "completed",
-//             amount: pr.amount,
-//             txnData: JSON.stringify(tx),
-//           },
-//         } // Update the fullName field
-//       );
-//     } else {
-//       const fix = {};
-//       fix.reason =
-//         "automatically cancelled because of no payment under 5 minutes recieved";
-//       const result = await Transaction.updateOne(
-//         {
-//           txnId: txnId,
-//           txnCtg: "deposit",
-//           txnType: "credit",
-//           status: "pending",
-//           isManual: false,
-//         },
-//         {
-//           $set: {
-//             status: "cancelled",
-//             txnData: JSON.stringify(fix),
-//           },
-//         }
-//       );
-//     }
-//   } catch (error) {
-//     ////console.log("paymentQr", error);
-//     return {
-//       success: false,
-//       message: error.response ? error.response.data.message : error.message,
-//     };
-//   }
-// };
 
 export const getPaymentStatus = async (req, res) => {
   try {
@@ -1254,35 +1289,40 @@ export const fetchMyReferrals = async (req, res) => {
 export const fetchLeaderboard = async (req, res) => {
   try {
     const account = await Transaction.aggregate([
-      // Filter for credit transactions
+      // Filter for credit reward transactions with completed status
       {
         $match: {
-          txnType: "credit", // Ensure the "type" field has "credit" for credit transactions
+          txnType: "credit",
           txnCtg: "reward",
           status: "completed",
         },
       },
-      // Group by userId and count the number of credit transactions
+      // Group by userId and sum the reward
       {
         $group: {
           _id: "$userId",
           totalReward: { $sum: "$reward" },
         },
       },
-      // Join with the User collection to get user details
+      // Lookup user details
       {
         $lookup: {
-          from: "users", // Replace with the actual name of the User collection
+          from: "users",
           localField: "_id",
           foreignField: "_id",
           as: "user",
         },
       },
-      // Unwind the user array (since $lookup returns an array)
       {
         $unwind: "$user",
       },
-      // Project the required fields
+      // Exclude users with _su: true
+      {
+        $match: {
+          "user._su": { $ne: true },
+        },
+      },
+      // Project required fields
       {
         $project: {
           _id: 0,
@@ -1294,11 +1334,10 @@ export const fetchLeaderboard = async (req, res) => {
           totalReward: 1,
         },
       },
-      // Sort by credit transaction count in descending order
+      // Sort and limit
       {
         $sort: { totalReward: -1 },
       },
-      // Limit to the top 10 users
       {
         $limit: 30,
       },
@@ -1455,6 +1494,19 @@ export const fetchMe = async (req, res) => {
       ],
     }).sort({ createdAt: -1 });
 
+    const wonMatch4 = await QuickLudo.countDocuments({
+      $and: [
+        { status: "completed" }, // Exclude the current matchId
+        {
+          $or: [
+            { "blue.userId": req.user._id, "blue.result": "winner" }, // Condition 1: Host userId matches
+            { "green.userId": req.user._id, "green.result": "winner" },
+            // Condition 2: Joiner userId matches
+          ],
+        },
+      ],
+    }).sort({ createdAt: -1 });
+
     const lostMatch = await ManualMatch.find({
       $and: [
         { status: "completed", "looser.userId": req.user._id }, // Exclude the current matchId
@@ -1499,7 +1551,11 @@ export const fetchMe = async (req, res) => {
       totalEarnings.length > 0 ? totalEarnings[0].totalReward : 0;
     stat.playedMatch =
       totalMatch.length + Number(totalMatch2) + Number(totalMatch3);
-    stat.wonMatch = wonMatch.length + Number(wonMatch2) + Number(wonMatch3);
+    stat.wonMatch =
+      wonMatch.length +
+      Number(wonMatch2) +
+      Number(wonMatch3) +
+      Number(wonMatch4);
     stat.lostMatch = lostMatch.length + Number(lostMatch2) + Number(lostMatch3);
     stat.refEarnings =
       totalRefEarn.length > 0 ? totalRefEarn[0].totalReward : 0;

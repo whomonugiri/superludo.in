@@ -13,7 +13,7 @@ export class Splash extends Scene {
     this.socket = this.game.registry.get("socket");
     this.registry.set("socket", this.socket);
     this.load.setPath("/assets");
-    this.load.image("logo", "logo.png?");
+    this.load.image("logo", "logo.png");
     this.load.image("loader", "loader.png");
 
     this.load.image("background2", "waiting_background.png");

@@ -90,6 +90,11 @@ export const validupi = (upi) => {
 };
 export const submitWithdrawReq = async (req, res) => {
   try {
+    // return res.json({
+    //     success: false,
+    //     message: "Withdraw is closed, for Today. due to technical issue. Please try again Tomorrow.",
+    //   });
+
     ////console.log(req.body);
     let amount = req.body.amount;
     let method = req.body.method;
@@ -147,6 +152,47 @@ export const submitWithdrawReq = async (req, res) => {
     // });
 
     const config = await _config();
+
+    if (!config.WITHDRAW_STATUS) {
+      return res.json({
+        success: false,
+        message: "WITHDRAW IS CLOSED TODAY",
+      });
+    }
+
+    const lastWithdraw = await Transaction.findOne({
+      txnCtg: "withdrawal",
+      status: { $in: ["completed"] },
+      userId: req.userId,
+    }).sort({ createdAt: -1 }); // Get the latest withdrawal transaction
+
+    if (lastWithdraw) {
+      // ✅ Get current time in IST as a real Date object
+
+      // ✅ 3 hours ago in IST
+      const threeHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+
+      // ✅ Check if last withdrawal was within last 3 hours
+      if (lastWithdraw.createdAt > threeHoursAgo) {
+        const nextAllowed = new Date(
+          lastWithdraw.createdAt.getTime() + 6 * 60 * 60 * 1000
+        );
+
+        return res.json({
+          success: false,
+          message: `You can only withdraw 1 time in 6 hours, you can place your withdraw request after ${nextAllowed.toLocaleTimeString(
+            "en-IN",
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+              timeZone: "Asia/Kolkata",
+            }
+          )}`,
+        });
+      }
+    }
+
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0); // Set to 12:00 AM
 
@@ -168,27 +214,45 @@ export const submitWithdrawReq = async (req, res) => {
 
     const ptxn = await Transaction.findOne({
       txnCtg: "withdrawal",
-      status: { $in: ["completed", "pending"] },
+      status: { $in: ["pending"] },
       userId: req.userId,
     }).sort({ createdAt: -1 }); // Get the latest withdrawal transaction
 
-    if (ptxn) {
-      const sixHoursAgo = new Date(Date.now() - 30 * 60 * 1000); // Calculate 6 hours ago
+    const now = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+    });
+    const istDate = new Date(now);
 
-      if (ptxn.createdAt < sixHoursAgo) {
-        // //console.log("Last withdrawal request was submitted more than 6 hours ago.");
-        // Allow new withdrawal
-      } else {
-        return res.json({
-          success: false,
-          message: "withdraw_time_limit",
-        });
-        // //console.log("Last withdrawal request was submitted less than 6 hours ago.");
-        // Reject or delay new withdrawal request
-      }
+    // Convert "HH:MM" to minutes
+    function timeToMinutes(timeStr) {
+      const [h, m] = timeStr.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    const startMinutes = timeToMinutes(config.WITHDRAW_START_TIME); // e.g. 13:00 -> 780
+    const endMinutes = timeToMinutes(config.WITHDRAW_END_TIME); // e.g. 16:00 -> 960
+
+    const currentMinutes = istDate.getHours() * 60 + istDate.getMinutes();
+
+    // Check if within allowed window
+    if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
+      return res.json({
+        success: false,
+        message: `Withdraw Time is ${config.WITHDRAW_START_TIME} to ${config.WITHDRAW_END_TIME}`,
+      });
+    }
+
+    if (ptxn) {
+      // (Optional) You can still keep your previous 6-hour check if needed
+      // Otherwise just allow withdrawal since time condition already passed
+      return res.json({
+        success: false,
+        message:
+          "you already requested a withdrawal, please wait until it completed", // Example message if you want only one withdrawal per day
+      });
     } else {
-      // //console.log("No previous withdrawal requests found.");
-      // Allow withdrawal since there's no history
+      // Allow withdrawal
+      // Your withdrawal logic here
     }
 
     const userBalance = await balance(req);
@@ -314,57 +378,6 @@ export function validAmount(value) {
   value = parseInt(value);
   return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
-
-// export const paymentQrStatus = async (req, res) => {
-//   try {
-//     const config = await _config();
-//     const data = {};
-//     data.txnid = req.body.txnid;
-
-//     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
-//     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
-
-//     const url = config.PAYTM_PAYMENT_VERIFICATION_URL;
-//     const result = await axios.post(url, data, {
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
-
-//     const tx = result.data.response;
-//     ////console.log(tx);
-//     const pr = {};
-//     if (tx.STATUS == "TXN_SUCCESS") {
-//       const txnst = await Transaction.updateOne(
-//         { userId: req.userId, txnId: data.txnid, status: "pending" }, // Filter by user ID
-//         {
-//           $set: {
-//             status: "completed",
-//             amount: pr.amount,
-//             txnData: JSON.stringify(tx),
-//           },
-//         } // Update the fullName field
-//       );
-
-//       if (txnst.modifiedCount > 0) {
-//         pr.success = true;
-//         pr.message = "payment_success_msg";
-//         pr.money = await balance(req);
-//       }
-//     } else {
-//       pr.success = false;
-//     }
-//     return res.json(pr);
-//   } catch (error) {
-//     ////console.log("paymentQrStatus", error);
-//     // ////console.log(error.response ? error.response.data.message : error.message);
-//     return res.json({
-//       success: false,
-//       message: error.response ? error.response.data.message : error.message,
-//     });
-//   }
-// };
-
 
 export const paymentQrStatus = async (req, res) => {
   try {

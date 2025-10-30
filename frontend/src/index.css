@@ -2,14 +2,25 @@
   background-color: rgba(13, 110, 253, 0.06) !important;
 }
 
-a.active {
-  color: rgba(13, 110, 253, 1) !important;
+/* .btn-primary {
+  background-color: #01017c;
+  border-color: #01017c;
+} */
+/* .text-primary {
+  color: #01017c !important;
+}
+.bg-primary {
+  background-color: #01017c !important;
+} */
+nav a.active {
+  color: #dc3545 !important;
 }
 
 .sidebarlink.active div {
+  font-weight: bold !important  ;
   color: white !important;
-  border-radius: 10px;
-  background-color: #599bfb !important;
+  border-radius: 5px;
+  background-color: #dc3545 !important;
 }
 
 .toast {
@@ -34,6 +45,7 @@ a.active {
 }
 
 .bg-overlay {
+  /* background-color: #01017c !important; */
   background-image: url("/assets/overlay.png");
 }
 
@@ -41,49 +53,6 @@ body {
   margin: 0;
 }
 /* HTML: <div class="loader"></div> */
-.loader {
-  width: 48px;
-  height: 48px;
-  background: #e91e24;
-  border-radius: 9px;
-  --c: no-repeat radial-gradient(farthest-side, #000 92%, #0000);
-  --s: 18px 18px;
-  -webkit-mask: var(--c) left 4px top 4px, var(--c) right 4px top 4px,
-    var(--c) right 4px bottom 4px, var(--c) left 4px bottom 4px,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: l4 1.5s infinite;
-}
-@keyframes l4 {
-  0% {
-    -webkit-mask-size: 0 0, 0 0, 0 0, 0 0, auto;
-  }
-  12.5% {
-    -webkit-mask-size: var(--s), 0 0, 0 0, 0 0, auto;
-  }
-  25% {
-    -webkit-mask-size: var(--s), var(--s), 0 0, 0 0, auto;
-  }
-  37.5% {
-    -webkit-mask-size: var(--s), var(--s), var(--s), 0 0, auto;
-  }
-  50% {
-    -webkit-mask-size: var(--s), var(--s), var(--s), var(--s), auto;
-  }
-  62.5% {
-    -webkit-mask-size: 0 0, var(--s), var(--s), var(--s), auto;
-  }
-  75% {
-    -webkit-mask-size: 0 0, 0 0, var(--s), var(--s), auto;
-  }
-  87.5% {
-    -webkit-mask-size: 0 0, 0 0, 0 0, var(--s), auto;
-  }
-  100% {
-    -webkit-mask-size: 0 0, 0 0, 0 0, 0 0, auto;
-  }
-}
 
 .load {
   display: flex;
@@ -111,10 +80,10 @@ body {
 nav-link {
   padding: 0px;
 }
-button.active {
+/* button.active {
   background-color: #000 !important;
   color: white !important;
-}
+} */
 
 .x-small {
   font-size: small !important;
@@ -146,4 +115,45 @@ button.active {
 .chati:active {
   outline: none !important;
   box-shadow: none;
+}
+
+.shiny-container {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.shiny-image {
+  display: block;
+  width: 100%; /* or fixed width like 300px */
+}
+
+.shine {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  animation: shine 5s infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0% {
+    left: -75%;
+  }
+  50% {
+    left: 125%;
+  }
+  100% {
+    left: 125%;
+  }
 }

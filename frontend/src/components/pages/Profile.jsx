@@ -138,107 +138,112 @@ export const Profile = () => {
   return (
     <>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        <div className="d-flex align-items-end justify-content-around my-3">
-          {/* //user */}
-          <div
-            className="text-center position-relative"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#avatars"
-          >
+        <div
+          className="d-flex align-items-center gap-3 p-2 my-3 border rounded-3 shadow-sm"
+          style={{ backgroundColor: "rgb(241,243,244)" }}
+        >
+          <div className="d-flex align-items-end justify-content-around my-3">
+            {/* //user */}
             <div
-              className="d-flex align-items-center justify-content-center bg-primary"
-              style={{
-                fontSize: "15px",
-
-                color: "white",
-                fontWeight: "bold",
-                border: "1px solid white",
-                width: "25px",
-                height: "25px",
-                position: "absolute",
-                borderRadius: "50%",
-                marginTop: "0px",
-                right: "0px",
-                bottom: "0px",
-              }}
+              className="text-center position-relative"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#avatars"
             >
-              <FaEdit />
-            </div>
-            <img
-              src={`assets/avatars/${profile}`}
-              height="80px"
-              width="80px"
-              className="rounded-circle border border-2 border-primary"
-            />
-          </div>
+              <div
+                className="d-flex align-items-center justify-content-center bg-primary"
+                style={{
+                  fontSize: "15px",
 
-          <div
-            className="offcanvas offcanvas-bottom h-50"
-            tabIndex="-1"
-            id="avatars"
-            aria-labelledby="offcanvasBottomLabel"
-          >
-            <div className="offcanvas-header pb-0">
-              <button
-                type="button"
-                className="btn-close cancelcanvas"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"
-              ></button>
+                  color: "white",
+                  fontWeight: "bold",
+                  border: "1px solid white",
+                  width: "25px",
+                  height: "25px",
+                  position: "absolute",
+                  borderRadius: "50%",
+                  marginTop: "0px",
+                  right: "0px",
+                  bottom: "0px",
+                }}
+              >
+                <FaEdit />
+              </div>
+              <img
+                src={`assets/avatars/${profile}?`}
+                height="80px"
+                width="80px"
+                className="rounded-circle border border-2 border-primary"
+              />
             </div>
-            <div className="offcanvas-body">
-              {/* //avatars/ */}
 
-              <div className="fw-bold text-center">Select Avatar</div>
-              <div className="d-flex gap-3 justify-content-center flex-wrap my-4">
-                {avatars.map((avatar) => {
-                  return (
-                    <img
-                      key={avatar}
-                      src={`assets/avatars/avatar${avatar}.png`}
-                      className="rounded rounded-circle border border-dark border-2"
-                      onClick={() => {
-                        updateProfile("avatar" + avatar + ".png");
-                      }}
-                      height="55px"
-                    />
-                  );
-                })}
+            <div
+              className="offcanvas offcanvas-bottom h-50"
+              tabIndex="-1"
+              id="avatars"
+              aria-labelledby="offcanvasBottomLabel"
+            >
+              <div className="offcanvas-header pb-0">
+                <button
+                  type="button"
+                  className="btn-close cancelcanvas"
+                  data-bs-dismiss="offcanvas"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="offcanvas-body">
+                {/* //avatars/ */}
+
+                <div className="fw-bold text-center">Select Avatar</div>
+                <div className="d-flex gap-3 justify-content-center flex-wrap my-4">
+                  {avatars.map((avatar) => {
+                    return (
+                      <img
+                        key={avatar}
+                        src={`assets/avatars/avatar${avatar}.png?v=5656`}
+                        className="rounded rounded-circle border border-dark border-2"
+                        onClick={() => {
+                          updateProfile("avatar" + avatar + ".png?v=5656");
+                        }}
+                        height="55px"
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* {kyc && (
+            <div>
+              <div className="fw-bold d-flex gap-1 justify-content-center mb-3 align-items-center">
+                {fullName}{" "}
+                {true ? (
+                  <MdVerified className="text-primary " title="KYC Completed" />
+                ) : (
+                  ""
+                )}
+              </div>
+            </div>
+          )} */}
+
+          {true && (
+            <div>
+              <Input12
+                value={fullName}
+                icon={<FaRegUser />}
+                label={t("full_name_label")}
+                id="profile_full_name"
+                type="text"
+                btn={"CHANGE NAME"}
+                working={working}
+                action={updateName}
+              />
+            </div>
+          )}
         </div>
 
-        {kyc && (
-          <div>
-            <div className="fw-bold d-flex gap-1 justify-content-center mb-3 align-items-center">
-              {fullName}{" "}
-              {kyc ? (
-                <MdVerified className="text-primary " title="KYC Completed" />
-              ) : (
-                ""
-              )}
-            </div>
-          </div>
-        )}
-
-        {true && (
-          <div>
-            <Input12
-              value={fullName}
-              icon={<FaRegUser />}
-              label={t("full_name_label")}
-              id="profile_full_name"
-              type="text"
-              btn={t("update_btn")}
-              working={working}
-              action={updateName}
-            />
-          </div>
-        )}
-
-        <div className="bg-primary rounded rounded-3 shadow-sm border">
-          <div className="bg-overlay p-2">
+        <div className="bg-dark rounded rounded-3 shadow-sm border">
+          <div className=" p-2">
             <div className="d-flex justify-content-between align-items-center fw-bold text-white">
               <div className="d-flex align-items-center gap-1">
                 <FaMobileAlt /> {t("mobile_number_label")}{" "}
@@ -266,7 +271,7 @@ export const Profile = () => {
                 )}
                 {!kyc && (
                   <button
-                    className="btn  btn-sm btn-dark fw-bold"
+                    className="btn  btn-sm btn-warning fw-bold"
                     data-bs-toggle="offcanvas"
                     data-bs-target="#kyc"
                   >
@@ -302,10 +307,8 @@ export const Profile = () => {
         {/* //popend */}
 
         {me && (
-          <Card>
-            <div className="text-center fw-bold border-bottom">
-              {t("player_stats")}
-            </div>
+          <Card class="border shadow-sm">
+            <div className="text-center fw-bold ">{t("player_stats")}</div>
             <div className="d-flex flex-column gap-1 mt-3">
               {/* <div className="d-flex justify-content-between align-items-center fw-bold small">
                 <span>{t("game_played")}</span>
@@ -314,7 +317,7 @@ export const Profile = () => {
 
               <div className="d-flex justify-content-between align-items-center fw-bold small">
                 <span>{t("game_won")}</span>
-                <span className="text-primary">{me.wonMatch}</span>
+                <span className="text-danger">{me.wonMatch}</span>
               </div>
 
               {/* <div className="d-flex justify-content-between align-items-center fw-bold small">
@@ -324,21 +327,21 @@ export const Profile = () => {
 
               <div className="d-flex justify-content-between align-items-center fw-bold small">
                 <span>{t("winning_earnings")}</span>
-                <span className="text-primary">
+                <span className="text-danger">
                   ₹ {Number(me.totalEarnings).toFixed(2)}
                 </span>
               </div>
 
               <div className="d-flex justify-content-between align-items-center fw-bold small">
                 <span>{t("referral_earnings")}</span>
-                <span className="text-primary">
+                <span className="text-danger">
                   ₹ {Number(me.refEarnings).toFixed(2)}
                 </span>
               </div>
 
               <div className="d-flex justify-content-between align-items-center fw-bold small">
                 <span>{t("referred_users")}</span>
-                <span className="text-primary"> {me.referredUsers}</span>
+                <span className="text-danger"> {me.referredUsers}</span>
               </div>
             </div>
           </Card>
@@ -351,7 +354,7 @@ export const Profile = () => {
             toastr.success(t("logout_success"));
             navigate("/login");
           }}
-          class="fw-bold btn-danger w-100"
+          class="fw-bold btn-danger fs-5 w-100"
           working={false}
         />
       </motion.div>

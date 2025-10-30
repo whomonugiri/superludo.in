@@ -8,191 +8,101 @@ import { MdVerified } from "react-icons/md";
 import { truncateName } from "../../game/twoplayer/helpers/ActionHandler";
 export const HMatch = ({ match }) => {
   const { t } = useTranslation();
+  const date = new Date(match.createdAt);
+  const day = date.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
+  const time = date.toLocaleString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const d = {
+    opponent: "",
+    result: "",
+  };
+  console;
+  if (match.currentUserId == match.hostData._id) {
+    d.opponent = match.joinerData.fullName;
+  } else if (match.currentUserId == match.joinerData._id) {
+    d.opponent = match.hostData.fullName;
+  } else {
+    d.opponent = "unknown";
+  }
+
+  if (match.status == "completed") {
+    if (match.type == "manual") {
+      if (match.winner.userId == match.currentUserId) {
+        d.result = "Win";
+      } else {
+        d.result = "Lost";
+      }
+    } else {
+      if (
+        match.blue.userId == match.currentUserId &&
+        match.blue.result == "winner"
+      ) {
+        d.result = "Win";
+      } else if (
+        match.green.userId == match.currentUserId &&
+        match.green.result == "winner"
+      ) {
+        d.result = "Win";
+      } else if (match.green.result == "draw") {
+        d.result = "Draw";
+      } else {
+        d.result = "Lost";
+      }
+    }
+  } else {
+    d.result = "Played";
+  }
   return (
     <>
-      <div className="p-1 px-2 rounded-2 bg-primary-light border shadow my-3">
-        <div className="border-bottom border-2 py-1 d-flex justify-content-between">
-          <div className="x-small fw-bold d-flex gap-2">
-            {t("entry_fee")}{" "}
-            <span className="text-danger d-flex gap-1 align-items-center">
-              {" "}
-              <img src="assets/money2.png" height="18px" />
-              {match.entryFee}
-            </span>
-          </div>
-
-          <div className="x-small fw-bold d-flex gap-2">
-            {t("prize")}{" "}
-            <span className="text-danger d-flex gap-1 align-items-center">
-              {" "}
-              <img src="assets/money2.png" height="18px" />
-              {match.prize}
-            </span>
-          </div>
-        </div>
-        <div className="d-flex justify-content-between align-items-center py-1 ">
-          <div className="text-center py-0 fw-bold">
-            <img
-              src={`assets/avatars/${match.hostData.profilePic}`}
-              className="rounded-circle border"
-              height="40px"
-            />
-            <div className="small gap-1 align-items-center">
-              {truncateName(match.hostData.fullName)}{" "}
-              {match.hostData.kyc ? (
-                <MdVerified className="text-success" title="KYC Completed" />
-              ) : (
-                ""
-              )}{" "}
-              {match.type == "online" || match.type == "speedludo" ? (
-                <>
-                  {match.status == "completed" &&
-                    match.blue.result == "winner" && (
-                      <span className="text-success">
-                        <FaThumbsUp />
-                      </span>
-                    )}
-                  {match.status == "completed" &&
-                    match.blue.result == "looser" && (
-                      <span className="text-danger">
-                        <FaThumbsDown />
-                      </span>
-                    )}
-
-                  {match.status == "completed" && match.type == "speedludo" && (
-                    <div
-                      style={{ fontSize: "11px" }}
-                      className="text-white text-start"
-                    >
-                      <div className=" rounded bg-dark d-inline-block px-2">
-                        Score : {match.blue.score}
-                      </div>
-
-                      <div className=" rounded bg-primary mx-1 d-inline-block px-2">
-                        {match.apiData.data[0].life < 0 ? (
-                          <span>
-                            <IoIosHeartDislike />
-                          </span>
-                        ) : (
-                          <span>
-                            <IoIosHeart /> {match.apiData.data[0].life}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {match.status == "completed" &&
-                    match.winner &&
-                    match.winner.userId == match.hostData._id && (
-                      <span className="text-success">
-                        <FaThumbsUp />
-                      </span>
-                    )}
-                  {match.status == "completed" &&
-                    match.looser &&
-                    match.looser.userId == match.hostData._id && (
-                      <span className="text-danger">
-                        <FaThumbsDown />
-                      </span>
-                    )}
-                </>
-              )}
+      <div className=" border-bottom rounded-2  p-0 px-2 py-2">
+        <div className=" d-flex justify-content-between align-items-center mt-1">
+          <div className="d-flex align-items-center gap-2">
+            <div
+              className="opacity-75 text-center"
+              style={{
+                paddingRight: "10px",
+                borderRight: "1px solid rgba(0,0,0,0.5)",
+              }}
+            >
+              <div className="">{day}</div>
+              <div style={{ fontSize: "12px" }}>{time.toUpperCase()}</div>
+            </div>
+            <div style={{ lineHeight: "18px" }}>
+              <div className="fw-bold small">
+                {d.result} against {truncateName(d.opponent)}
+              </div>
+              <div
+                className="d-flex justify-content-between small opacity-50 "
+                style={{ fontSize: "12px" }}
+              >
+                <div>
+                  {match.matchId} | {match.roomCode}
+                </div>
+              </div>
             </div>
           </div>
-          <div>
-            <img src="assets/vv.png" height="40px" />
-          </div>
-          <div className="text-center py-0 fw-bold">
-            <img
-              src={`assets/avatars/${match.joinerData.profilePic}`}
-              className="rounded-circle border"
-              height="40px"
-            />
-            <div className="small  gap-1 align-items-center">
-              {truncateName(match.joinerData.fullName)}{" "}
-              {match.joinerData.kyc ? (
-                <MdVerified className="text-primary" title="KYC Completed" />
-              ) : (
-                ""
-              )}
-              {match.type == "online" || match.type == "speedludo" ? (
-                <>
-                  {match.status == "completed" &&
-                    match.green.result == "winner" && (
-                      <span className="text-success">
-                        <FaThumbsUp />
-                      </span>
-                    )}
-                  {match.status == "completed" &&
-                    match.green.result == "looser" && (
-                      <span className="text-danger">
-                        <FaThumbsDown />
-                      </span>
-                    )}
 
-                  {match.status == "completed" && match.type == "speedludo" && (
-                    <div
-                      style={{ fontSize: "11px" }}
-                      className="text-white text-end"
-                    >
-                      <div className=" rounded bg-dark d-inline-block px-2">
-                        Score : {match.green.score}
-                      </div>
-                      <div className=" rounded bg-primary mx-1 d-inline-block px-2">
-                        {match.apiData.data[1].life < 0 ? (
-                          <span>
-                            <IoIosHeartDislike />
-                          </span>
-                        ) : (
-                          <span>
-                            <IoIosHeart /> {match.apiData.data[1].life}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {match.status == "completed" &&
-                    match.winner &&
-                    match.winner.userId == match.joinerData._id && (
-                      <span className="text-success">
-                        <FaThumbsUp />
-                      </span>
-                    )}
-                  {match.status == "completed" &&
-                    match.looser &&
-                    match.looser.userId == match.joinerData._id && (
-                      <span className="text-danger">
-                        <FaThumbsDown />
-                      </span>
-                    )}
-                </>
-              )}
+          <div style={{ lineHeight: "19px" }} className="">
+            <div className="fw-bold fs-6 text-end text-nowrap d-flex gap-1 align-items-center">
+              {d.result == "Lost" && <span className="text-danger">(-)</span>}
+              {d.result == "Win" && <span className="text-success">(+)</span>}
+              {/* <span className="text-success">(+)</span> */}
+              <img src="/assets/money2.png" style={{ height: "20px" }} />₹
+              {d.result == "Win" && match.prize}
+              {d.result == "Lost" && match.entryFee}
+              {d.result == "Draw" && match.entryFee}
+              {d.result == "Played" && match.entryFee}
             </div>
-          </div>
-        </div>
-        <div
-          className="text-center border-top d-flex justify-content-between
-         
-          "
-          style={{ fontSize: "11px" }}
-        >
-          <div>
-            {formatTimestamp(match.createdAt)} (
-            <span className="">{match.matchId}</span>)
-          </div>
-          <div
-            className={`${
-              match.status == "cancelled" ? "text-danger" : "text-primary"
-            }`}
-          >
-            {t(match.status)}
-            {match.green && match.green.result == "draw" && " (Draw)"}
+            <div style={{ fontSize: "12px" }} className="opacity-75 text-end">
+              {match.status}
+            </div>
           </div>
         </div>
       </div>

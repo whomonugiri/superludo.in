@@ -19,7 +19,11 @@ export const DrawFinish = (scene, winner, looser) => {
       scene.playbtn.setInteractive();
       scene.playbtn.on("pointerdown", () => {
         window.dispatchEvent(
-          new CustomEvent("navigate", { detail: { path: "/speedludo" } })
+          new CustomEvent("navigate", {
+            detail: {
+              path: "/speedludo" + (localStorage.getItem("lite") && "2"),
+            },
+          })
         );
       });
 
@@ -120,7 +124,11 @@ export const DrawFinish = (scene, winner, looser) => {
       scene.playbtn.setInteractive();
       scene.playbtn.on("pointerdown", () => {
         window.dispatchEvent(
-          new CustomEvent("navigate", { detail: { path: "/speedludo" } })
+          new CustomEvent("navigate", {
+            detail: {
+              path: "/speedludo" + (localStorage.getItem("lite") && "2"),
+            },
+          })
         );
       });
 
@@ -169,7 +177,11 @@ export const DrawFinish = (scene, winner, looser) => {
       scene.playbtn.setInteractive();
       scene.playbtn.on("pointerdown", () => {
         window.dispatchEvent(
-          new CustomEvent("navigate", { detail: { path: "/speedludo" } })
+          new CustomEvent("navigate", {
+            detail: {
+              path: "/speedludo" + (localStorage.getItem("lite") && "2"),
+            },
+          })
         );
       });
 
@@ -219,7 +231,9 @@ export const DrawFinish = (scene, winner, looser) => {
   scene.gameStatus = 2;
   setTimeout(() => {
     window.dispatchEvent(
-      new CustomEvent("navigate", { detail: { path: "/speedludo" } })
+      new CustomEvent("navigate", {
+        detail: { path: "/speedludo" + (localStorage.getItem("lite") && "2") },
+      })
     );
   }, 5000);
 };

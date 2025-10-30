@@ -14,7 +14,7 @@ import {
 } from "../utils/helpers.js";
 
 const colors = { blue: 0, green: 1 };
-
+const roomCreationLocks = {};
 export const socketHandlers = async (io, socket) => {
   try {
     ping(socket);
@@ -67,9 +67,19 @@ export const socketHandlers = async (io, socket) => {
         }
 
         if (!rooms[gameData.roomCode]) {
-          rooms[gameData.roomCode] = new Room(gameData.roomCode);
-          rooms[gameData.roomCode]._id = gameUid;
-          rooms[gameData.roomCode].prize = gameData.prize;
+          if (!roomCreationLocks[gameData.roomCode]) {
+            roomCreationLocks[gameData.roomCode] = true; // Lock
+
+            rooms[gameData.roomCode] = new Room(gameData.roomCode);
+            rooms[gameData.roomCode]._id = gameUid;
+            rooms[gameData.roomCode].prize = gameData.prize;
+
+            delete roomCreationLocks[gameData.roomCode]; // Unlock
+          } else {
+            // If locked, wait and retry after a short delay
+            setTimeout(() => socket.emit("gohome"), 100);
+            return;
+          }
         }
 
         if (!gameData) return;

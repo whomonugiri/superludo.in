@@ -27,6 +27,7 @@ const initialState = {
   runningMatch: 0,
   onlineMatch: 0,
   speedMatch: 0,
+  quickMatch: 0,
 };
 const authSlice = createSlice({
   name: "auth",
@@ -42,6 +43,7 @@ const authSlice = createSlice({
       state.runningMatch = action.payload.runningMatch;
       state.onlineMatch = action.payload.onlineMatch;
       state.speedMatch = action.payload.speedMatch;
+      state.quickMatch = action.payload.quickMatch;
     },
     setAuth: (state, action) => {
       state.isAuth = true;

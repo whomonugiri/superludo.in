@@ -7,7 +7,7 @@ const matchSchema = new mongoose.Schema(
       enum: ["speedludo", "online"],
       required: true,
     },
-    matchId: { type: String, required: true },
+    matchId: { type: String, required: true, unique: true },
 
     blue: {
       userId: {
@@ -51,7 +51,8 @@ const matchSchema = new mongoose.Schema(
     },
     roomCode: {
       type: String,
-      default: null,
+      required: true,
+      unique: true,
     },
     status: {
       type: String,

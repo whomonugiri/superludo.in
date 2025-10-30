@@ -1,12 +1,13 @@
-export const HOST = "https://server.superludo.in";
-export const SPEED_LUDO_SERVER = "https://speed-ludo-server.superludo.in";
+export const HOST = "https://server.moneyludo.in";
+export const SPEED_LUDO_SERVER = "https://speed-ludo-server.moneyludo.in";
 export const CLASSIC_ONLINE_SERVER =
-  "https://classic-online-server.superludo.in";
+  "https://classic-online-server.moneyludo.in";
+export const QUICK_LUDO_SERVER = "https://quick-ludo-server.moneyludo.in";
 
 // export const HOST = "http://localhost:3142";
 // export const CLASSIC_ONLINE_SERVER = "http://localhost:3143";
 // export const SPEED_LUDO_SERVER = "http://localhost:3144";
-
+// export const QUICK_LUDO_SERVER = "http://localhost:3145";
 export const CLIENT = "https://superludo.in";
 
 export const API_HOST = HOST + "/api/v1";
@@ -50,5 +51,9 @@ export const API_CLASSIC_ONLINE_CANCEL = "/user/cancelClassicOnline";
 export const API_FETCH_SPEED_LUDO = "/user/fetchSpeedLudo";
 export const API_SPEED_LUDO_PLAY = "/user/playSpeedLudo";
 export const API_SPEED_LUDO_CANCEL = "/user/cancelSpeedLudo";
+
+export const API_FETCH_QUICK_LUDO = "/user/fetchQuickLudo";
+export const API_QUICK_LUDO_PLAY = "/user/playQuickLudo";
+export const API_QUICK_LUDO_CANCEL = "/user/cancelQuickLudo";
 
 export const API_FETCH_REFERRAL_LIST = "/user/fetchReferrals";

@@ -18,11 +18,14 @@ import {
   fetchMatches,
   fetchOnlineMatch,
   fetchOnlineMatches,
+  fetchQuickMatch,
+  fetchQuickMatches,
   fetchSpeedMatch,
   fetchSpeedMatches,
   fetchUser,
   fetchUserMatches,
   fetchUserOnlineMatches,
+  fetchUserQuickMatches,
   fetchUsersList,
   fetchUserSpeedMatches,
   fetchUserTransactions,
@@ -34,7 +37,6 @@ import {
   updateInfo,
   updateResult,
   updateUserStatus,
-  updateUserType,
   updateWithdrawStatus,
   verifyLogin,
 } from "../controllers/admin/account.controller.js";
@@ -61,10 +63,12 @@ router.route("/fetchUserTransactions").post(auth, fetchUserTransactions);
 router.route("/fetchUserMatches").post(auth, fetchUserMatches);
 router.route("/fetchUserOnlineMatches").post(auth, fetchUserOnlineMatches);
 router.route("/fetchUserSpeedMatches").post(auth, fetchUserSpeedMatches);
+router.route("/fetchUserQuickMatches").post(auth, fetchUserQuickMatches);
 
 router.route("/fetchMatches").post(auth, fetchMatches);
 router.route("/fetchOnlineMatches").post(auth, fetchOnlineMatches);
 router.route("/fetchSpeedMatches").post(auth, fetchSpeedMatches);
+router.route("/fetchQuickMatches").post(auth, fetchQuickMatches);
 
 router.route("/fetchWithdraws").post(auth, fetchWithdraws);
 router.route("/fetchDeposits").post(auth, fetchDeposits);
@@ -73,10 +77,9 @@ router.route("/fetchMatch").post(auth, fetchMatch);
 router.route("/fetchOnlineMatch").post(auth, fetchOnlineMatch);
 
 router.route("/fetchSpeedMatch").post(auth, fetchSpeedMatch);
+router.route("/fetchQuickMatch").post(auth, fetchQuickMatch);
 
 router.route("/updateUserStatus").post(auth, updateUserStatus);
-router.route("/updateUserType").post(auth, updateUserType);
-
 router.route("/updateResultApi").post(auth, submitResultApi);
 router.route("/updateResult").post(auth, updateResult);
 router.route("/updateWithdrawStatus").post(auth, updateWithdrawStatus);

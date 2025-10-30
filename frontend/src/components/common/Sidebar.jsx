@@ -1,4 +1,5 @@
 import {
+  FaBook,
   FaFileLines,
   FaMoneyBillTransfer,
   FaRankingStar,
@@ -13,27 +14,16 @@ import { LiaDiceD6Solid } from "react-icons/lia";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { GrChat } from "react-icons/gr";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import $ from "jquery";
 import { FaHome } from "react-icons/fa";
 import { MdOutlineVerified, MdVerified } from "react-icons/md";
-import { Button5 } from "../elements/Button5"; // Assuming Button5 is used for the language toggle
-
 const Sidebar = () => {
-  const { t, i18n } = useTranslation();
-  const { profile, fullName, mobileNumber, kyc } = useSelector(
+  const { t } = useTranslation();
+  const { profile, fullName, mobileNumber, kyc, _y } = useSelector(
     (store) => store.auth
   );
   const navigate = useNavigate();
-
-  const toggleLanguage = () => {
-    if (i18n.language === "english") {
-      i18n.changeLanguage("hindi");
-    } else {
-      i18n.changeLanguage("english");
-    }
-  };
-
   return (
     <>
       <div
@@ -55,15 +45,15 @@ const Sidebar = () => {
         </div>
         <div className="offcanvas-body">
           <div
-            className="bg-primary rounded-2 mb-3"
+            className=" rounded-2 mb-3"
             onClick={() => {
               navigate("/profile");
               $("#sidebar-close-btn").trigger("click");
             }}
           >
-            <div className="border p-2 rounded-2 d-flex gap-2 align-items-center text-white shadow-sm bg-transparent bg-overlay">
+            <div className=" p-2 rounded-2 d-flex gap-2 align-items-center  bg-transparent ">
               <img
-                src={`assets/avatars/${profile}`}
+                src={`assets/avatars/${profile}?v`}
                 height="50px"
                 className="rounded-circle border"
               />
@@ -80,39 +70,46 @@ const Sidebar = () => {
               </div>
             </div>
           </div>
+          <hr></hr>
+          {/* sidebar buttons */}
 
-          {/* Sidebar buttons */}
           <SidebarButton title={t("home_btn")} icon={<FaHome />} path="/" />
           <SidebarButton
             title={t("sidebar_transactions")}
             icon={<FaFileLines />}
             path="/transactions"
           />
-          <SidebarButton
-            title={t("sidebar_add_money")}
-            icon={<RiMoneyRupeeCircleFill />}
-            path="/deposit"
-          />
-          <SidebarButton
-            title={t("sidebar_withdraw")}
-            icon={<GiTakeMyMoney />}
-            path="/withdraw"
-          />
+
+          {true && (
+            <SidebarButton
+              title={t("sidebar_add_money")}
+              icon={<RiMoneyRupeeCircleFill />}
+              path="/deposit"
+            />
+          )}
+          {true && (
+            <SidebarButton
+              title={t("sidebar_withdraw")}
+              icon={<GiTakeMyMoney />}
+              path="/withdraw"
+            />
+          )}
 
           <SidebarButton
             title={t("sidebar_leaderboard")}
             icon={<FaRankingStar />}
             path="/leaderboard"
           />
-          <SidebarButton
-            title={t("sidebar_match_history")}
-            icon={<LiaDiceD6Solid />}
-            path="/matches"
-          />
+
           <SidebarButton
             title={t("sidebar_refer")}
             icon={<MdMobileScreenShare />}
             path="/refer"
+          />
+          <SidebarButton
+            title={t("sidebar_legal")}
+            icon={<FaBook />}
+            path="/terms"
           />
           <SidebarButton
             title={t("sidebar_chat_support")}
@@ -120,29 +117,14 @@ const Sidebar = () => {
             path="/chat"
           />
 
-          {/* New Language Button */}
-          <Button5
-            action={toggleLanguage}
-            text={t("language_btn")}
-            icon={<MdOutlineVerified />}
-          />
-
           {/* sidebar buttons ends */}
-
-          {/* Important links */}
-          <div className="d-flex gap-3 flex-wrap justify-content-center mt-3">
-            <a href="#" className="text-decoration-none small">
-              {t("page_about_us")}
-            </a>
-            <a href="#" className="text-decoration-none small">
-              {t("page_privacy_policy")}
-            </a>
-            <a href="#" className="text-decoration-none small">
-              {t("page_terms")}
-            </a>
+          <hr></hr>
+          {/* //imporatnlinks */}
+          <div className="d-flex gap-3 flex-wrap justify-content-center mt-3 small opacity-75">
+            © 2025 Super Ludo. All Rights Reserved
           </div>
 
-          {/* Important links ends here */}
+          {/* imporatntlinks ends here */}
         </div>
       </div>
     </>

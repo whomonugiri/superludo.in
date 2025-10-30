@@ -145,7 +145,9 @@ export const VerifyOtp = () => {
     <>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
         <Card>
-          <label className="text-center w-100 mb-2">{t("otp_label")}</label>
+          <label className="text-center w-100 mb-2 fw-bold">
+            {t("otp_label")}
+          </label>
           <OtpInput
             value={otp}
             onChange={setOtp}
@@ -154,9 +156,14 @@ export const VerifyOtp = () => {
             inputType="tel"
             renderInput={(props) => <input {...props} />}
             containerStyle={"d-flex justify-content-between gap-2"}
-            inputStyle={"form-control w-100"}
+            inputStyle={
+              "form-control w-100 rounded-4 border-secondary text-center fw-bold"
+            }
           />
-          <div className="small mt-3">
+          <div
+            className="small text-secondary mt-3"
+            style={{ fontSize: "12px" }}
+          >
             {t("legal_terms_disclaimer_p1")}{" "}
             <a href="" className="text-decoration-none text-primary">
               {t("legal_terms_disclaimer_p2")}
@@ -166,7 +173,7 @@ export const VerifyOtp = () => {
 
           <Button1
             text={t("verify_otp_btn")}
-            class="w-100 mt-2 btn-primary"
+            class="w-100 mt-2 btn-danger"
             action={handleVerifyOtp}
             working={working}
           />
@@ -179,7 +186,7 @@ export const VerifyOtp = () => {
             <Button2
               text={t("resend_otp_btn")}
               action={handleResendOtp}
-              class={timer <= 0 ? "" : "disabled"}
+              class={`${timer <= 0 ? "" : "disabled"} btn-outline-danger`}
               working={working2}
             />
           </div>

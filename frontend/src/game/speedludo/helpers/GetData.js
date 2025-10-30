@@ -6,14 +6,16 @@ export const GetData = (scene) => {
   const deviceId = localStorage.getItem("_di"); // Retrieve gameUid from localStorage
   const token = localStorage.getItem("_tk"); // Retrieve gameUid from localStorage
   if (!gameUid || !deviceId || !token) {
-    location.href = "/speedludo";
+    location.href = "/speedludo" + (localStorage.getItem("lite") && "2");
   }
 
   scene.socket.emit("join", { gameUid, deviceId, token });
   scene.socket.on("gohome", () => {
     localStorage.removeItem("gameUid");
     window.dispatchEvent(
-      new CustomEvent("navigate", { detail: { path: "/speedludo" } })
+      new CustomEvent("navigate", {
+        detail: { path: "/speedludo" + (localStorage.getItem("lite") && "2") },
+      })
     );
   });
 

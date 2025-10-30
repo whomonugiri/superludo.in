@@ -65,19 +65,19 @@ export const Refer = () => {
   return (
     <>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        <Card class="border border border-3">
+        <Card class="">
           <div className="text-center">
             <img src="assets/refer.png" className="w-50" />
           </div>
-          <div className="fw-bold text-center my-2">
+          <div className="fw-bold text-center my-2 small">
             {t("refer_msg_1")} {referralCommisionLevel1 * 100}%{" "}
             {t("refer_msg_2")} {referralCommisionLevel1 * 100}%{" "}
             {t("refer_msg_3")}
           </div>
 
-          <div className="py-2 text-center bg-overlay rounded-5 border border-2 border-primary">
+          <div className="py-2 text-center  rounded-5 border border-2 border-danger">
+            <div className="fs-1 fw-bold text-danger">{refCode}</div>
             <div className="fw-bold black">{t("referral_code")}</div>
-            <div className="fs-1 fw-bold text-primary">{refCode}</div>
           </div>
         </Card>
 
@@ -88,7 +88,7 @@ export const Refer = () => {
               toastr.success(t("refer_code_copied"));
             }}
           >
-            <button className="btn btn-primary btn-sm w-100 fw-bold">
+            <button className="btn btn-dark btn-sm w-100 fw-bold">
               <MdContentCopy /> {t("copy_code_btn")}
             </button>
           </CopyToClipboard>
@@ -99,7 +99,7 @@ export const Refer = () => {
               toastr.success(t("refer_link_copied"));
             }}
           >
-            <button className="btn btn-primary btn-sm w-100 fw-bold">
+            <button className="btn btn-danger btn-sm w-100 fw-bold">
               <MdContentCopy /> {t("copy_link_btn")}
             </button>
           </CopyToClipboard>
@@ -117,7 +117,7 @@ export const Refer = () => {
       </motion.div>
 
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        <div className="border border-2 rounded shadow-sm p-2 bg-primary-light mt-3">
+        <div className=" rounded p-2 mt-3">
           <div className="text-center fw-bold border-bottom pb-1 small">
             {t("my_referrals")}
           </div>

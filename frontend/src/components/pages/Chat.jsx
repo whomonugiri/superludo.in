@@ -171,7 +171,7 @@ export const Chat = () => {
       )}
       {
         <motion.div
-          className="bg-overlay"
+          className=""
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           style={{ backgroundAttachment: "fixed", height: "90vh" }}

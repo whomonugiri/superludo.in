@@ -50,15 +50,14 @@ export const UIHandler = (scene) => {
 
   //control panel
 
-  // if (scene.color == "green") {
-  //   scene.control = scene.add.image(540, 1760, "control2");
-  // } else {
-  //   scene.control = scene.add.image(540, 1760, "control");
-  // }
+  if (scene.color == "green") {
+    scene.control = scene.add.image(540, 1760, "control2");
+  } else {
+    scene.control = scene.add.image(540, 1760, "control");
+  }
 
   //playerborder
   scene.playerBorder = scene.add.image(-100, 2030, "playerBorder");
-  scene.playerBorder.setAlpha(0);
 
   //for player home blinking
 
@@ -159,19 +158,10 @@ export const UIHandler = (scene) => {
 
   //dice
 
-  scene.add.sprite(750, 1610, "diceholder").setAngle(180).setScale(0.9);
-  scene.add.sprite(335, 1610, "diceholder").setScale(0.9);
-  //dice
-  if (scene.color == "green") {
-    scene.blueDice = scene.add.sprite(735, 1610, "blueDice");
-    scene.greenDice = scene.add.sprite(350, 1610, "greenDice");
-  } else {
-    scene.blueDice = scene.add.sprite(350, 1610, "blueDice");
-    scene.greenDice = scene.add.sprite(735, 1610, "greenDice");
-  }
-
+  scene.blueDice = scene.add.sprite(537, 1810, "blueDice");
   scene.blueDice.setFrame(0);
 
+  scene.greenDice = scene.add.sprite(537, 1810, "greenDice");
   scene.greenDice.setFrame(0);
 
   //boom
@@ -205,7 +195,7 @@ export const UIHandler = (scene) => {
     .text(
       10, // x position
       10, // y position
-      scene.roomCode, // Text content
+      "Room : " + scene.roomCode, // Text content
       {
         fontSize: "35px", // Font size
         fontStyle: "bold",
@@ -217,36 +207,36 @@ export const UIHandler = (scene) => {
     .setAlpha(0.4);
 
   //for text data for game
-  // scene.amountTextBlue = scene.add.text(
-  //   220, // x position
-  //   1830, // y position
-  //   scene.amount, // Text content
-  //   {
-  //     fontSize: "30px", // Font size
-  //     fontStyle: "bold",
-  //     color: "white", // Text color
-  //     fontFamily: "Arial", // Font family
-  //     padding: { x: 0, y: 0 }, // Optional padding
-  //   }
-  // );
+  scene.amountTextBlue = scene.add.text(
+    220, // x position
+    1830, // y position
+    scene.amount, // Text content
+    {
+      fontSize: "30px", // Font size
+      fontStyle: "bold",
+      color: "white", // Text color
+      fontFamily: "Arial", // Font family
+      padding: { x: 0, y: 0 }, // Optional padding
+    }
+  );
 
-  // scene.amountTextGreen = scene.add.text(
-  //   715, // x position
-  //   1830, // y position
-  //   scene.amount, // Text content
-  //   {
-  //     fontSize: "30px", // Font size
-  //     fontStyle: "bold",
-  //     color: "white", // Text color
-  //     fontFamily: "Arial", // Font family
-  //     padding: { x: 0, y: 0 }, // Optional padding
-  //   }
-  // );
+  scene.amountTextGreen = scene.add.text(
+    715, // x position
+    1830, // y position
+    scene.amount, // Text content
+    {
+      fontSize: "30px", // Font size
+      fontStyle: "bold",
+      color: "white", // Text color
+      fontFamily: "Arial", // Font family
+      padding: { x: 0, y: 0 }, // Optional padding
+    }
+  );
 
   if (scene.color == "green") {
     scene.blueName = scene.add.text(
-      860, // x position
-      1730, // y position
+      655, // x position
+      1758, // y position
       truncateName(scene.playerInfo.blue.fullName), // Text content
       {
         fontSize: "35px", // Font size
@@ -258,8 +248,8 @@ export const UIHandler = (scene) => {
     );
 
     scene.greenName = scene.add.text(
-      30, // x position
-      1730, // y position
+      160, // x position
+      1758, // y position
       truncateName(scene.playerInfo.green.fullName), // Text content
       {
         fontSize: "35px", // Font size
@@ -273,16 +263,16 @@ export const UIHandler = (scene) => {
     scene.greenlife = [];
     scene.bluelife = [];
     for (let i = 0; i < 3; i++) {
-      scene.add.image(42 + i * 20, 1795, "lifeused");
-      scene.add.image(870 + i * 20, 1795, "lifeused");
+      scene.add.image(42 + i * 20, 1865, "lifeused");
+      scene.add.image(955 + i * 20, 1865, "lifeused");
 
-      scene.bluelife.push(scene.add.image(870 + i * 20, 1795, "lifeleft"));
-      scene.greenlife.push(scene.add.image(42 + i * 20, 1795, "lifeleft"));
+      scene.bluelife.push(scene.add.image(955 + i * 20, 1865, "lifeleft"));
+      scene.greenlife.push(scene.add.image(42 + i * 20, 1865, "lifeleft"));
     }
   } else {
     scene.blueName = scene.add.text(
-      30, // x position
-      1730, // y position
+      160, // x position
+      1758, // y position
       truncateName(scene.playerInfo.blue.fullName), // Text content
       {
         fontSize: "35px", // Font size
@@ -294,8 +284,8 @@ export const UIHandler = (scene) => {
     );
 
     scene.greenName = scene.add.text(
-      860, // x position
-      1730, // y position
+      655, // x position
+      1758, // y position
       truncateName(scene.playerInfo.green.fullName), // Text content
       {
         fontSize: "35px", // Font size
@@ -309,11 +299,11 @@ export const UIHandler = (scene) => {
     scene.greenlife = [];
     scene.bluelife = [];
     for (let i = 0; i < 3; i++) {
-      scene.add.image(42 + i * 20, 1795, "lifeused");
-      scene.add.image(870 + i * 20, 1795, "lifeused");
+      scene.add.image(42 + i * 20, 1865, "lifeused");
+      scene.add.image(955 + i * 20, 1865, "lifeused");
 
-      scene.bluelife.push(scene.add.image(42 + i * 20, 1795, "lifeleft"));
-      scene.greenlife.push(scene.add.image(870 + i * 20, 1795, "lifeleft"));
+      scene.bluelife.push(scene.add.image(42 + i * 20, 1865, "lifeleft"));
+      scene.greenlife.push(scene.add.image(955 + i * 20, 1865, "lifeleft"));
     }
   }
 
@@ -339,49 +329,51 @@ export const UIHandler = (scene) => {
   LifeAction(scene);
 
   scene.backBtn = scene.add.image(980, 130, "back").setScale(0.7);
-  // scene.exitBtn = scene.add.image(110, 130, "exit").setScale(0.7);
+  scene.exitBtn = scene.add.image(110, 130, "exit").setScale(0.7);
 
   scene.backBtn.setInteractive();
-  // scene.exitBtn.setInteractive();
+  scene.exitBtn.setInteractive();
 
   scene.backBtn.on("pointerdown", () => {
     window.dispatchEvent(
-      new CustomEvent("navigate", { detail: { path: "/speedludo" } })
+      new CustomEvent("navigate", {
+        detail: { path: "/speedludo" + (localStorage.getItem("lite") && "2") },
+      })
     );
   });
 
-  // scene.warning = scene.add.image(540, 960, "warning");
-  // scene.yes = scene.add.image(320, 850, "yes").setScale(0.8);
-  // scene.cancel = scene.add.image(750, 850, "cancel").setScale(0.8);
+  scene.warning = scene.add.image(540, 960, "warning");
+  scene.yes = scene.add.image(320, 850, "yes").setScale(0.8);
+  scene.cancel = scene.add.image(750, 850, "cancel").setScale(0.8);
 
-  // scene.warning.setDepth(999999);
-  // scene.warning.setVisible(false);
-  // scene.yes.setVisible(false);
-  // scene.cancel.setVisible(false);
-  // scene.cancel.setInteractive();
-  // scene.yes.setInteractive();
+  scene.warning.setDepth(999999);
+  scene.warning.setVisible(false);
+  scene.yes.setVisible(false);
+  scene.cancel.setVisible(false);
+  scene.cancel.setInteractive();
+  scene.yes.setInteractive();
 
-  // scene.yes.setDepth(999999);
-  // scene.cancel.setDepth(999999);
+  scene.yes.setDepth(999999);
+  scene.cancel.setDepth(999999);
 
-  // scene.exitBtn.on("pointerdown", () => {
-  //   scene.warning.setVisible(true);
-  //   scene.yes.setVisible(true);
-  //   scene.cancel.setVisible(true);
-  // });
+  scene.exitBtn.on("pointerdown", () => {
+    scene.warning.setVisible(true);
+    scene.yes.setVisible(true);
+    scene.cancel.setVisible(true);
+  });
 
-  // scene.cancel.on("pointerdown", () => {
-  //   scene.warning.setVisible(false);
-  //   scene.yes.setVisible(false);
-  //   scene.cancel.setVisible(false);
-  // });
+  scene.cancel.on("pointerdown", () => {
+    scene.warning.setVisible(false);
+    scene.yes.setVisible(false);
+    scene.cancel.setVisible(false);
+  });
 
-  // scene.yes.on("pointerdown", () => {
-  //   scene.socket.emit("exitGame", {
-  //     color: scene.color,
-  //     room_code: scene.roomCode,
-  //   });
-  // });
+  scene.yes.on("pointerdown", () => {
+    scene.socket.emit("exitGame", {
+      color: scene.color,
+      room_code: scene.roomCode,
+    });
+  });
 
   scene.magicdice = [];
   if (scene._su) {
@@ -479,7 +471,7 @@ export const UIHandler = (scene) => {
   //   );
 
   LifeAction(scene);
-  scene.scoreBtn = scene.add.image(540, 1820, "score").setScale(0.6);
+  scene.scoreBtn = scene.add.image(540, 1520, "score").setScale(0.6);
 
   scene.timeLeft = "00:00";
   //handling timer
@@ -498,11 +490,11 @@ export const UIHandler = (scene) => {
     }
   );
 
-  scene.add.image(540, 80, "prize").setScale(0.8);
+  scene.add.image(540, 80, "prize").setScale(0.7);
 
   scene.add.text(
     500, // x position
-    70, // y position
+    80, // y position
     "₹ " + scene.prize, // Text content
     {
       fontSize: "40px", // Font size

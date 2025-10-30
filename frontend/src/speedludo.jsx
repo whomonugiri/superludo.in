@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
 const SpeedLudo = () => {
+  const lite = localStorage.getItem("lite");
   const { isAuth } = useSelector((store) => store.auth);
   const gameRef = useRef(null);
   const params = useParams("gameUid");
@@ -31,7 +32,8 @@ const SpeedLudo = () => {
 
     window.addEventListener("navigate", handleNavigate);
 
-    if (!params.gameUid) navigate("/speedludo");
+    if (!params.gameUid)
+      navigate("/speedludo" + (localStorage.getItem("lite") && "2"));
 
     // Retrieve required data from localStorage
     const gameUid = params.gameUid;

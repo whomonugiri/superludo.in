@@ -26,6 +26,7 @@ import {
   acceptCancelRequest,
   cancelClassicOnline,
   cancelMatch,
+  cancelQuickLudo,
   cancelSpeedLudo,
   createMatch,
   fetchClassicOnline,
@@ -33,6 +34,7 @@ import {
   fetchMatch,
   fetchMatchData,
   fetchMatchHistory,
+  fetchQuickLudo,
   fetchSpeedLudo,
   iLost,
   iWon,
@@ -40,6 +42,7 @@ import {
   joinMatchCancel,
   joinMatchReq,
   playClassicOnline,
+  playQuickLudo,
   playSpeedLudo,
   submitCancelRequest,
   updateRoomCode,
@@ -91,6 +94,7 @@ router.route("/createMatch").post(auth, createMatch);
 router.route("/fetchMatchData").post(auth, fetchMatchData);
 router.route("/fetchClassicOnline").post(auth, fetchClassicOnline);
 router.route("/fetchSpeedLudo").post(auth, fetchSpeedLudo);
+router.route("/fetchQuickLudo").post(auth, fetchQuickLudo);
 
 router.route("/fetchMatch").post(auth, fetchMatch);
 router.route("/cancelMatch").post(auth, cancelMatch);
@@ -107,9 +111,11 @@ router.route("/iWon").post(upload.single("image"), auth, iWon);
 router.route("/iLost").post(auth, iLost);
 router.route("/playClassicOnline").post(auth, playClassicOnline);
 router.route("/playSpeedLudo").post(auth, playSpeedLudo);
+router.route("/playQuickLudo").post(auth, playQuickLudo);
 
 router.route("/cancelClassicOnline").post(auth, cancelClassicOnline);
 router.route("/cancelSpeedLudo").post(auth, cancelSpeedLudo);
+router.route("/cancelQuickLudo").post(auth, cancelQuickLudo);
 
 //kyc
 

@@ -27,17 +27,9 @@ import { Link, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { updateBalance, updateWallet } from "../../contexts/slices/userSlice";
 import { motion } from "motion/react";
-import { IoChevronBackCircleOutline } from "react-icons/io5";
-
-export const gstData = (amount) => {
-  const gst = amount * 0.28;
-  const deposit = amount - gst;
-  const data = {};
-  data.gst = Number(gst.toFixed(2));
-  data.deposit = Number(deposit.toFixed(2));
-  return data;
-};
-
+import { IoChevronBackCircleOutline, IoShieldCheckmark } from "react-icons/io5";
+import GST from "../elements/GST";
+import { useRef } from "react";
 export const AddMoney = () => {
   const {
     isAuth,
@@ -52,13 +44,22 @@ export const AddMoney = () => {
   const [btnlink, setBtnlink] = useState(null);
   const [txnid, setTxnid] = useState(false);
   const [am, setAm] = useState(0);
+
+  const [dpa, setDpa] = useState(0);
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setDpa(value);
+  };
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const upiId = "7669006847@axisbank";
   const { t } = useTranslation();
+  const amountInput = useRef(0);
   const add = (amount) => {
     $("#addmoney_amount").val(amount);
     $("#addmoney_amount2").val(amount);
+    setDpa(amount);
   };
 
   const createPaymentQr = async () => {
@@ -228,8 +229,8 @@ export const AddMoney = () => {
               tabIndex="0"
             >
               <div className="d-flex justify-content-between align-items-center  pb-2 mb-2">
-                <div className="fw-bold text-primary">PAY BY PAYTM</div>
-                <Link to="/deposit" className="btn btn-sm btn-outline-primary">
+                <div className="fw-bold text-danger">PAY BY PAYTM</div>
+                <Link to="/deposit" className="btn btn-sm btn-outline-danger">
                   <IoChevronBackCircleOutline /> Go Back
                 </Link>
               </div>
@@ -242,39 +243,33 @@ export const AddMoney = () => {
                     label={t("amount_label")}
                     id="addmoney_amount"
                     type="number"
+                    action={handleChange}
                   />
                   <div className="d-flex  justify-content-between mb-2">
                     <Button2
-                      text="₹ 1000"
-                      class=""
-                      working={false}
-                      action={() => add(1000)}
-                    />
-
-                    <Button2
                       text="₹ 5000"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(5000)}
                     />
 
                     <Button2
                       text="₹ 10000"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(10000)}
                     />
 
                     <Button2
                       text="₹ 15000"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(15000)}
                     />
 
                     <Button2
                       text="₹ 20000"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(20000)}
                     />
@@ -282,7 +277,7 @@ export const AddMoney = () => {
                   <div className="d-flex gap-2">
                     <Button1
                       text={t("DEPOSIT MONEY")}
-                      class="w-100 btn-primary"
+                      class="w-100 btn-danger"
                       working={working}
                       action={createPaymentQr}
                     />
@@ -302,10 +297,23 @@ export const AddMoney = () => {
                     {btnlink && (
                       <a
                         href={btnlink}
-                        className="btn btn-sm btn-outline-primary w-100 py-2 mt-2 fw-bold small"
+                        className="w-100 py-3 mt-3 text-center d-block"
+                        style={{
+                          backgroundColor: "#01B2ED",
+                          color: "white",
+                          borderRadius: "8px",
+                          fontWeight: "600",
+                          fontSize: "16px",
+                          textDecoration: "none",
+                        }}
                       >
-                        {/* {t("PAY USING PAYTM APP")} */}
-                        <img src="https://pwebassets.paytm.com/commonwebassets/paytmweb/header/images/logo_new.svg" />
+                        <IoShieldCheckmark
+                          style={{
+                            marginRight: "6px",
+                            verticalAlign: "middle",
+                          }}
+                        />
+                        Pay Securely {am > 0 && <>₹{parseInt(am)}</>}
                       </a>
                     )}
                   </div>
@@ -424,6 +432,8 @@ export const AddMoney = () => {
           </div>
         </Card>
       </motion.div>
+
+      <GST amount={Number(dpa)} />
     </>
   );
 };

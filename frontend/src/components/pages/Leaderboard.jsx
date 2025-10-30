@@ -59,7 +59,7 @@ export const Leaderboard = () => {
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
         {players && players.length > 2 && (
           <div className="bg-warning rounded-3 border shadow-sm my-3">
-            <div className="bg-overlay p-2">
+            <div className="p-2">
               <div className="d-flex align-items-end justify-content-around">
                 {/* //user */}
                 <div className="text-center position-relative">
@@ -208,8 +208,11 @@ export const Leaderboard = () => {
             {players.map((player, index) => {
               if (index < 3) return;
               return (
-                <div key={index} className="border rounded-1 my-3 bg-info">
-                  <div className="d-flex justify-content-between p-2 bg-overlay align-items-center">
+                <div
+                  key={index}
+                  className="border rounded-1 my-3 bg-danger text-white"
+                >
+                  <div className="d-flex justify-content-between p-2  align-items-center">
                     <div className="d-flex gap-2 align-items-center">
                       <span className="fw-bold">{index + 1}</span>
                       <img

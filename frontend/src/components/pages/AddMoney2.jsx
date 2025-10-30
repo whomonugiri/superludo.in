@@ -28,6 +28,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateBalance, updateWallet } from "../../contexts/slices/userSlice";
 import { motion } from "motion/react";
 import { IoChevronBackCircleOutline } from "react-icons/io5";
+import GST from "../elements/GST";
 export const AddMoney2 = () => {
   const {
     isAuth,
@@ -42,6 +43,13 @@ export const AddMoney2 = () => {
   const [btnlink, setBtnlink] = useState(null);
   const [txnid, setTxnid] = useState(false);
   const [am, setAm] = useState(0);
+
+  const [dpa, setDpa] = useState(0);
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setDpa(value);
+  };
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const upiId = "7669006847@axisbank";
@@ -49,6 +57,7 @@ export const AddMoney2 = () => {
   const add = (amount) => {
     $("#addmoney_amount").val(amount);
     $("#addmoney_amount2").val(amount);
+    setDpa(amount);
   };
 
   const createPaymentQr = async () => {
@@ -218,8 +227,8 @@ export const AddMoney2 = () => {
               tabIndex="0"
             >
               <div className="d-flex justify-content-between align-items-center  pb-2 mb-2">
-                <div className="fw-bold text-primary">PAY BY QR</div>
-                <Link to="/deposit" className="btn btn-sm btn-outline-primary">
+                <div className="fw-bold text-danger">PAY BY QR</div>
+                <Link to="/deposit" className="btn btn-sm btn-outline-danger">
                   <IoChevronBackCircleOutline /> Go Back
                 </Link>
               </div>
@@ -231,39 +240,40 @@ export const AddMoney2 = () => {
                     label={t("amount_label")}
                     id="addmoney_amount"
                     type="number"
+                    action={handleChange}
                   />
                   <div className="d-flex  justify-content-between mb-2">
                     <Button2
                       text="₹ 100"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(100)}
                     />
 
                     <Button2
                       text="₹ 500"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(500)}
                     />
 
                     <Button2
                       text="₹ 1000"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(1000)}
                     />
 
                     <Button2
                       text="₹ 1500"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(1500)}
                     />
 
                     <Button2
                       text="₹ 2000"
-                      class=""
+                      class="btn-outline-danger text-nowrap"
                       working={false}
                       action={() => add(2000)}
                     />
@@ -272,7 +282,7 @@ export const AddMoney2 = () => {
                     <Button1
                       icon={<BsQrCode />}
                       text={t("qr_pay_btn")}
-                      class="w-100 btn-primary"
+                      class="w-100 btn-danger"
                       working={working}
                       action={createPaymentQr}
                     />
@@ -407,6 +417,7 @@ export const AddMoney2 = () => {
           </div>
         </Card>
       </motion.div>
+      <GST amount={Number(dpa)} />
     </>
   );
 };

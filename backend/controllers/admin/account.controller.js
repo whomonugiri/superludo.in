@@ -24,6 +24,7 @@ import { validAmount } from "../payment.controller.js";
 import Commission from "../../models/commission.model.js";
 import { OnlineGame } from "../../models/onlinegame.js";
 import { SpeedLudo } from "../../models/speedludo.js";
+import { QuickLudo } from "../../models/quickludo.js";
 export const _log = async (log) => {
   await Log.create(log);
 };
@@ -237,39 +238,39 @@ export const fetchUsersList = async (req, res) => {
 
 export const updateUserStatus = async (req, res) => {
   try {
-    const userId = req.body.userId;
-    const status = req.body.status;
+    const { userId, status, _y, _su } = req.body;
+
+    // Normalize values
+    const normalizedStatus = status === "active" ? "active" : "inactive";
+    const normalizedY = Boolean(_y);
+    const normalizedSU = Boolean(_su);
 
     const updatedUser = await User.updateOne(
-      {
-        _id: userId,
-      }, // Filter by user ID
+      { _id: userId }, // Filter
       {
         $set: {
-          status: status,
+          status: normalizedStatus,
+          _y: normalizedY,
+          _su: normalizedSU,
           updatedAt: new Date(),
         },
-      } // Update the fullName field
+      }
     );
 
     if (!updatedUser.modifiedCount) {
       return res.json({
         success: false,
-        message: "user not found",
+        message: "user not found or no changes made",
       });
     }
 
-    const u = await User.findOne({ _id: userId });
+    const u = await User.findById(userId);
+
     _log({
-      message:
-        req.admin.emailId +
-        " updated status of " +
-        u.fullName +
-        " (" +
-        u.mobileNumber +
-        ") to " +
-        status,
+      message: `${req.admin.emailId} updated status of ${u.fullName} (${u.mobileNumber}) 
+        → status: ${normalizedStatus}, _y: ${normalizedY}, _su: ${normalizedSU}`,
     });
+
     return res.json({
       success: true,
       message: "user status updated",
@@ -277,57 +278,11 @@ export const updateUserStatus = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      message: error.response ? error.response.data.message : error.message,
+      message: error?.response?.data?.message || error.message,
     });
   }
 };
 
-export const updateUserType = async (req, res) => {
-  try {
-    const userId = req.body.userId;
-    const _su = req.body._su;
-
-    const updatedUser = await User.updateOne(
-      {
-        _id: userId,
-      }, // Filter by user ID
-      {
-        $set: {
-          _su: _su,
-          updatedAt: new Date(),
-        },
-      } // Update the fullName field
-    );
-
-    if (!updatedUser.modifiedCount) {
-      return res.json({
-        success: false,
-        message: "user not found",
-      });
-    }
-
-    const u = await User.findOne({ _id: userId });
-    _log({
-      message:
-        req.admin.emailId +
-        " updated superuser status of " +
-        u.fullName +
-        " (" +
-        u.mobileNumber +
-        ") to " +
-        _su,
-    });
-    return res.json({
-      success: true,
-      message: "user status updated",
-    });
-  } catch (error) {
-    return res.json({
-      success: false,
-      message: error.response ? error.response.data.message : error.message,
-    });
-  }
-};
 export const fetchUser = async (req, res) => {
   try {
     let cond = req.body.cond;
@@ -356,14 +311,17 @@ export const fetchUser = async (req, res) => {
       totalPlayedMatches,
       totalPlayedMatches2,
       totalPlayedMatches3,
+      totalPlayedMatches4,
 
       totalWonMatches,
       totalWonMatches2,
       totalWonMatches3,
+      totalWonMatches4,
 
       totalLostMatches,
       totalLostMatches2,
       totalLostMatches3,
+      totalLostMatches4,
 
       depositStats,
       withdrawalStats,
@@ -382,6 +340,10 @@ export const fetchUser = async (req, res) => {
         $or: [{ "blue.userId": user._id }, { "green.userId": user._id }],
       }),
       SpeedLudo.countDocuments({
+        status: "completed",
+        $or: [{ "blue.userId": user._id }, { "green.userId": user._id }],
+      }),
+      QuickLudo.countDocuments({
         status: "completed",
         $or: [{ "blue.userId": user._id }, { "green.userId": user._id }],
       }),
@@ -406,6 +368,13 @@ export const fetchUser = async (req, res) => {
           { "green.userId": user._id, "green.result": "winner" },
         ],
       }),
+      QuickLudo.countDocuments({
+        status: "completed",
+        $or: [
+          { "blue.userId": user._id, "blue.result": "winner" },
+          { "green.userId": user._id, "green.result": "winner" },
+        ],
+      }),
 
       // Count total lost matches
       ManualMatch.countDocuments({
@@ -420,6 +389,14 @@ export const fetchUser = async (req, res) => {
         ],
       }),
       SpeedLudo.countDocuments({
+        status: "completed",
+        $or: [
+          { "blue.userId": user._id, "blue.result": "looser" },
+          { "green.userId": user._id, "green.result": "looser" },
+        ],
+      }),
+
+      QuickLudo.countDocuments({
         status: "completed",
         $or: [
           { "blue.userId": user._id, "blue.result": "looser" },
@@ -501,14 +478,17 @@ export const fetchUser = async (req, res) => {
     user.stat.totalPlayedMatches = totalPlayedMatches;
     user.stat.totalPlayedMatches += totalPlayedMatches2;
     user.stat.totalPlayedMatches += totalPlayedMatches3;
+    user.stat.totalPlayedMatches += totalPlayedMatches4;
 
     user.stat.totalWonMatches = totalWonMatches;
     user.stat.totalWonMatches += totalWonMatches2;
     user.stat.totalWonMatches += totalWonMatches3;
+    user.stat.totalWonMatches += totalWonMatches4;
 
     user.stat.totalLostMatches = totalLostMatches;
     user.stat.totalLostMatches += totalLostMatches2;
     user.stat.totalLostMatches += totalLostMatches3;
+    user.stat.totalLostMatches += totalLostMatches4;
 
     user.stat.totalRef = totalRef;
 
@@ -583,6 +563,10 @@ export const fetchUserTransactions = async (req, res) => {
 
         if (!txn.match) {
           txn.match = await SpeedLudo.findOne({ _id: txn.matchId });
+        }
+
+        if (!txn.match) {
+          txn.match = await QuickLudo.findOne({ _id: txn.matchId });
         }
         return txn;
       })
@@ -802,6 +786,79 @@ export const fetchUserSpeedMatches = async (req, res) => {
   }
 };
 
+export const fetchUserQuickMatches = async (req, res) => {
+  try {
+    const limit = 20;
+    const skip = (req.body.page - 1) * limit;
+    let cond = req.body.cond;
+
+    const filter = { $and: [] };
+
+    // Filter by status if provided
+    if (cond.status && cond.status !== "all") {
+      filter.$and.push({ status: cond.status });
+    }
+
+    // Filter by win/loss conditions
+    if (cond.result === "won") {
+      filter.$and.push({
+        $or: [
+          { "blue.userId": cond.userId, "blue.result": "winner" },
+          { "green.userId": cond.userId, "green.result": "winner" },
+        ],
+      });
+    } else if (cond.result === "lost") {
+      filter.$and.push({
+        $or: [
+          { "blue.userId": cond.userId, "blue.result": "looser" },
+          { "green.userId": cond.userId, "green.result": "looser" },
+        ],
+      });
+    }
+
+    // Always filter by userId in blue or green
+    filter.$and.push({
+      $or: [{ "blue.userId": cond.userId }, { "green.userId": cond.userId }],
+    });
+
+    // Apply keyword search if provided
+    if (cond.keyword) {
+      filter.$and.push({
+        $or: [
+          { matchId: { $regex: cond.keyword.toString(), $options: "i" } }, // Case-insensitive search
+          { roomCode: { $regex: cond.keyword.toString(), $options: "i" } },
+        ],
+      });
+    }
+
+    // Execute the query with pagination
+    const matches = await QuickLudo.find(filter.$and.length ? filter : {})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const _matches = await Promise.all(
+      matches.map(async (match) => {
+        match.hostData = await User.findOne({ _id: match.blue.userId });
+        match.joinerData = await User.findOne({ _id: match.green.userId });
+
+        return match;
+      })
+    );
+
+    return res.json({
+      success: true,
+      data: _matches,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
 export const fetchMatches = async (req, res) => {
   try {
     const limit = 20;
@@ -931,6 +988,52 @@ export const fetchSpeedMatches = async (req, res) => {
     }
 
     const matches = await SpeedLudo.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const _matches = await Promise.all(
+      matches.map(async (match) => {
+        match.hostData = await User.findOne({ _id: match.blue.userId });
+        match.joinerData = await User.findOne({ _id: match.green.userId });
+
+        return match;
+      })
+    );
+
+    return res.json({
+      success: true,
+      data: _matches,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchQuickMatches = async (req, res) => {
+  try {
+    const limit = 20;
+    const skip = (req.body.page - 1) * limit;
+    let cond = req.body.cond;
+
+    const filter = {};
+
+    if (cond.status && cond.status != "all") {
+      filter.status = cond.status;
+    }
+
+    if (cond.keyword) {
+      filter.$or = [
+        { matchId: { $regex: cond.keyword.toString(), $options: "i" } }, // Case-insensitive txnId search
+        { roomCode: { $regex: cond.keyword.toString(), $options: "i" } }, // Case-insensitive txnId search
+      ];
+    }
+
+    const matches = await QuickLudo.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -1215,6 +1318,78 @@ export const fetchSpeedMatch = async (req, res) => {
     }
 
     const match = await SpeedLudo.findOne(cond).lean();
+    if (!match) {
+      return res.json({
+        success: false,
+        data: "invalid match page",
+      });
+    }
+
+    match.stat = {};
+
+    // Batch multiple queries using Promise.all() for better performance
+    const [hostData, joinerData, transactions, logs] = await Promise.all([
+      // Count total played matches
+      User.findOne({
+        _id: match.blue.userId,
+      }),
+      User.findOne({
+        _id: match.green.userId,
+      }),
+      Transaction.aggregate([
+        {
+          $match: {
+            $or: [{ matchId: match._id }],
+          },
+        },
+        {
+          $lookup: {
+            from: "users", // The collection to join with
+            localField: "userId", // The field in Transaction
+            foreignField: "_id", // The field in User
+            as: "user", // The output field (array of users)
+          },
+        },
+        {
+          $unwind: {
+            path: "$user",
+            preserveNullAndEmptyArrays: true, // If no user is found, still include the transaction
+          },
+        },
+      ]),
+      Log.find({ matchId: match._id }),
+    ]);
+
+    match.hostData = hostData;
+    match.joinerData = joinerData;
+    match.transactions = transactions;
+    match.logs = logs;
+
+    const _match = match;
+
+    return res.json({
+      success: true,
+      data: _match,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchQuickMatch = async (req, res) => {
+  try {
+    let cond = req.body.cond;
+    if (!cond) {
+      return res.json({
+        success: false,
+        data: "invalid user page",
+      });
+    }
+
+    const match = await QuickLudo.findOne(cond).lean();
     if (!match) {
       return res.json({
         success: false,
@@ -2014,6 +2189,10 @@ export const sendStat = async () => {
     status: "running",
   });
 
+  stat.quickMatch = await QuickLudo.countDocuments({
+    status: "running",
+  });
+
   io.to("admin").emit("stat", stat);
 };
 
@@ -2133,7 +2312,9 @@ export const fetchChatList = async () => {
       },
       { $replaceRoot: { newRoot: "$latestMessage" } },
       { $sort: { createdAt: -1 } },
+      { $limit: 60 },
     ]);
+
     const _messages = await Promise.all(
       messages.map(async (msg) => {
         msg.user = await User.findOne({
@@ -2184,7 +2365,7 @@ export const _fetchChatList = async (req, res) => {
       },
       { $replaceRoot: { newRoot: "$latestMessage" } },
       { $sort: { createdAt: -1 } },
-      { $limit: 50 },
+      { $limit: 30 },
     ]);
     const _messages = await Promise.all(
       messages.map(async (msg) => {
@@ -2393,7 +2574,9 @@ export const updateGame = async (req, res) => {
           maxAmount: req.body.maxAmount ?? 0,
           amounts: req.body.amounts ?? 0,
           duration: req.body.duration ?? 0,
+          durationLite: req.body.durationLite ?? 0,
 
+          moves: req.body.moves ?? 0,
           updatedAt: new Date(),
         },
       }
@@ -2445,7 +2628,7 @@ export const fetchGamesList = async (req, res) => {
     const limit = 20;
     const skip = (req.body.page - 1) * limit;
 
-    const games = await Game.find().skip(skip).limit(3);
+    const games = await Game.find().skip(skip).limit(4);
 
     return res.json({
       success: true,

@@ -15,18 +15,13 @@ export const Input12 = (props) => {
             className="form-control"
             id={props.id}
           />
-          <span
-            className="input-group-text f-bold bg-primary text-white"
-            id="basic-addon1"
-          >
-            <Button1
-              text={props.btn}
-              working={props.working}
-              action={props.action}
-              class="fw-bold p-0 btn-primary"
-            />
-          </span>
         </div>
+        <Button1
+          text={props.btn}
+          working={props.working}
+          action={props.action}
+          class="fw-bold mt-2 w-100 btn-danger"
+        />
       </div>
     </>
   );

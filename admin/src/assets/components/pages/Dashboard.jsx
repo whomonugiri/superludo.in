@@ -103,6 +103,7 @@ export const Dashboard = () => {
                   reward={data.User_Reward_Wallet_Balance}
                   bonus={data.User_Bonus_Wallet_Balance}
                   users={data.Total_Users}
+                  otp={data.otpCount}
                 />
 
                 <ReportItem
@@ -198,6 +199,19 @@ export const Dashboard = () => {
                   value={data.SpeedReward}
                   money={true}
                   desc={`(total completed speedludo match reward)`}
+                />
+
+                <ReportItem
+                  title="QuickLudo Bets"
+                  value={data.QuickBet}
+                  money={true}
+                  desc={`(total completed quickludo match bets)`}
+                />
+                <ReportItem
+                  title="QuickLudo Rewards"
+                  value={data.QuickReward}
+                  money={true}
+                  desc={`(total completed quickludo match reward)`}
                 />
               </div>
             )}

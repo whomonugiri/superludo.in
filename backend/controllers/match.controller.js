@@ -24,6 +24,8 @@ import { RandomNumber } from "../../frontend/src/game/twoplayer/actions/RandomNu
 import FakeMatch from "../models/fakematch.model.js";
 import FakeSpeed from "../models/fakespeed.model.js";
 import FakeOnline from "../models/fakeonline.model.js";
+import { QuickLudo } from "../models/quickludo.js";
+import FakeQuick from "../models/fakequick.model.js";
 
 export const getPrize = async (amount, type = null) => {
   const config = await _config();
@@ -41,6 +43,113 @@ export const getPrize = async (amount, type = null) => {
     return com.toFixed(2);
   }
 };
+
+export async function checkTransaction(userId, matchId) {
+  try {
+    // Make sure IDs are ObjectId
+    const userObjectId = userId;
+    const matchObjectId = matchId;
+
+    // Query the transaction
+    const txnExists = await Transaction.exists({
+      txnCtg: "bet",
+      txnType: "debit",
+      status: "completed",
+      matchId: matchObjectId,
+      userId: userObjectId,
+    });
+
+    return !!txnExists; // true if exists, false if not
+  } catch (err) {
+    console.error("Error checking transaction:", err);
+    return false;
+  }
+}
+
+async function createBetTransaction(userId, game) {
+  const newTxn = {
+    txnId: await newTxnId(),
+    userId,
+    amount: game.entryFee,
+    cash: 0,
+    reward: game.entryFee,
+    bonus: 0,
+    remark: "Match Joined",
+    status: "completed",
+    txnType: "debit",
+    txnCtg: "bet",
+    matchId: game._id,
+  };
+  await _log({
+    matchId: game._id,
+    message: "Bot1427 : created bet transaction, with txnid : " + newTxn.txnId,
+  });
+  return Transaction.create(newTxn);
+}
+
+export async function bot1427() {
+  const report = {
+    totalMatches: 0,
+    processed: 0,
+    newTransactions: 0,
+    errors: [],
+  };
+
+  try {
+    const pipeline = [
+      {
+        $match: {
+          matchId: { $ne: null },
+          txnCtg: "bet",
+          txnType: "debit",
+        },
+      },
+      {
+        $group: {
+          _id: "$matchId",
+          transactions: { $push: "$$ROOT" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $match: { count: { $lt: 2 } },
+      },
+    ];
+
+    const data = await Transaction.aggregate(pipeline);
+    report.totalMatches = data.length;
+
+    for (const item of data) {
+      const matchId = item._id;
+
+      let game =
+        (await OnlineGame.findById(matchId).lean()) ||
+        (await SpeedLudo.findById(matchId).lean()) ||
+        (await QuickLudo.findById(matchId).lean());
+
+      if (game && game.status === "completed") {
+        report.processed++;
+
+        // blue player
+        if (!(await checkTransaction(game.blue.userId, game._id))) {
+          await createBetTransaction(game.blue.userId, game);
+          report.newTransactions++;
+        }
+
+        // green player
+        if (!(await checkTransaction(game.green.userId, game._id))) {
+          await createBetTransaction(game.green.userId, game);
+          report.newTransactions++;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error in bot1427:", err);
+    report.errors.push(err.message);
+  }
+
+  return report;
+}
 
 export const createMatch = async (req, res) => {
   try {
@@ -96,6 +205,22 @@ export const createMatch = async (req, res) => {
     }
 
     if (amount % game.multipleOf != 0) {
+      return res.json({
+        success: false,
+        message: "gie",
+        game: game,
+      });
+    }
+
+    if (amount > game.maxAmount) {
+      return res.json({
+        success: false,
+        message: "gie",
+        game: game,
+      });
+    }
+
+    if (amount < game.minAmount) {
       return res.json({
         success: false,
         message: "gie",
@@ -171,6 +296,7 @@ export const fetchMatchHistory = async (req, res) => {
     let cond = {};
     let cond2 = {};
     let cond3 = {};
+    let cond4 = {};
 
     if (req.body.ctg == "ALL") {
       cond = {
@@ -200,6 +326,20 @@ export const fetchMatchHistory = async (req, res) => {
       };
 
       cond3 = {
+        $and: [
+          { status: { $ne: "waiting" } }, // Exclude the current matchId
+          {
+            $or: [
+              { "blue.userId": req.user._id }, // Condition 1: Host userId matches
+              { "green.userId": req.user._id },
+
+              // Condition 2: Joiner userId matches
+            ],
+          },
+        ],
+      };
+
+      cond4 = {
         $and: [
           { status: { $ne: "waiting" } }, // Exclude the current matchId
           {
@@ -355,10 +495,18 @@ export const fetchMatchHistory = async (req, res) => {
       .limit(limit)
       .lean();
 
+    let matches4 = await QuickLudo.find(cond4)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
     matches = await Promise.all(
       matches.map(async (match) => {
         match.hostData = await User.findOne({ _id: match.host.userId });
         match.joinerData = await User.findOne({ _id: match.joiner.userId });
+        match.currentUserId = req.user._id;
+
         return match;
       })
     );
@@ -367,6 +515,7 @@ export const fetchMatchHistory = async (req, res) => {
       matches2.map(async (match) => {
         match.hostData = await User.findOne({ _id: match.blue.userId });
         match.joinerData = await User.findOne({ _id: match.green.userId });
+        match.currentUserId = req.user._id;
         return match;
       })
     );
@@ -375,11 +524,21 @@ export const fetchMatchHistory = async (req, res) => {
       matches3.map(async (match) => {
         match.hostData = await User.findOne({ _id: match.blue.userId });
         match.joinerData = await User.findOne({ _id: match.green.userId });
+        match.currentUserId = req.user._id;
         return match;
       })
     );
 
-    const mergedData = [...matches, ...matches2, ...matches3];
+    matches4 = await Promise.all(
+      matches4.map(async (match) => {
+        match.hostData = await User.findOne({ _id: match.blue.userId });
+        match.joinerData = await User.findOne({ _id: match.green.userId });
+        match.currentUserId = req.user._id;
+        return match;
+      })
+    );
+
+    const mergedData = [...matches, ...matches2, ...matches3, ...matches4];
     mergedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const money = await balance(req);
@@ -401,6 +560,8 @@ export const fakeMatches = [];
 export const getFakeRunningMatches = async () => {
   const matches = [];
   const speedmatches = [];
+  const quickmatches = [];
+
   const onlinematches = [];
 
   const getRandomNumber = (min, max) =>
@@ -500,6 +661,9 @@ export const getFakeRunningMatches = async () => {
   const speedLudo = await Game.findOne({
     game: "speedOnline",
   }).lean();
+  const quickLudo = await Game.findOne({
+    game: "quickOnline",
+  }).lean();
 
   onlineClassic.amounts.split(",").map(async (amount) => {
     const m = {
@@ -517,13 +681,23 @@ export const getFakeRunningMatches = async () => {
     speedmatches.push(m);
   });
 
+  quickLudo.amounts.split(",").map(async (amount) => {
+    const m = {
+      entryFee: amount,
+      playing: getRandomNumber(1, 8),
+    };
+    quickmatches.push(m);
+  });
+
   await FakeMatch.deleteMany({});
   await FakeOnline.deleteMany({});
   await FakeSpeed.deleteMany({});
+  await FakeQuick.deleteMany({});
 
   await FakeMatch.insertMany(matches);
   await FakeOnline.insertMany(onlinematches);
   await FakeSpeed.insertMany(speedmatches);
+  await FakeQuick.insertMany(quickmatches);
 };
 
 export const fetchMatchData = async (req, res) => {
@@ -708,9 +882,94 @@ export const fetchClassicOnline = async (req, res) => {
 };
 export const fetchSpeedLudo = async (req, res) => {
   try {
+    const { lite = false } = req.body;
     const matches = {};
+    const onlineClassic = await Game.findOne({
+      game: "speedOnline",
+    }).lean();
+
+    let duration = onlineClassic.duration;
+    if (lite) duration = onlineClassic.durationLite;
 
     matches.pmatch = await SpeedLudo.findOne({
+      $and: [
+        { status: "running", duration: duration }, // Exclude the current matchId
+
+        {
+          $or: [
+            { "blue.userId": req.user._id }, // Condition 1: Host userId matches
+            { "green.userId": req.user._id },
+            // Condition 2: Joiner userId matches
+          ],
+        },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (matches.pmatch) {
+      matches.pmatch.blue.user = await User.findOne({
+        _id: matches.pmatch.blue.userId,
+      });
+      matches.pmatch.green.user = await User.findOne({
+        _id: matches.pmatch.green.userId,
+      });
+    }
+
+    matches.omatch = await Promise.all(
+      onlineClassic.amounts.split(",").map(async (amount) => {
+        const wu = await SpeedLudo.findOne({
+          status: "waiting",
+          duration: duration,
+          entryFee: amount,
+          "blue.userId": req.userId,
+        });
+
+        let realplaying = await SpeedLudo.countDocuments({
+          status: "running",
+          duration: duration,
+          entryFee: amount,
+        });
+
+        let fakeplaying = await FakeSpeed.findOne({
+          entryFee: amount,
+        });
+
+        return {
+          key: amount,
+          amount: Number(amount),
+          waiting: await SpeedLudo.countDocuments({
+            status: "waiting",
+            entryFee: amount,
+            duration: duration,
+          }),
+          playing: Number(fakeplaying.playing) + Number(realplaying),
+          isMeWaiting: wu ? true : false,
+          prize: await getPrize(Number(amount), "speed"),
+        };
+      })
+    );
+
+    const money = await balance(req);
+    return res.json({
+      success: true,
+      matches: matches,
+      balance: money,
+    });
+  } catch (error) {
+    ////console.log("createMatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchQuickLudo = async (req, res) => {
+  try {
+    const matches = {};
+
+    matches.pmatch = await QuickLudo.findOne({
       $and: [
         { status: "running" }, // Exclude the current matchId
         {
@@ -735,36 +994,36 @@ export const fetchSpeedLudo = async (req, res) => {
     }
 
     const onlineClassic = await Game.findOne({
-      game: "speedOnline",
+      game: "quickOnline",
     }).lean();
 
     matches.omatch = await Promise.all(
       onlineClassic.amounts.split(",").map(async (amount) => {
-        const wu = await SpeedLudo.findOne({
+        const wu = await QuickLudo.findOne({
           status: "waiting",
           entryFee: amount,
           "blue.userId": req.userId,
         });
 
-        let realplaying = await SpeedLudo.countDocuments({
+        let realplaying = await QuickLudo.countDocuments({
           status: "running",
           entryFee: amount,
         });
 
-        let fakeplaying = await FakeSpeed.findOne({
+        let fakeplaying = await FakeQuick.findOne({
           entryFee: amount,
         });
 
         return {
           key: amount,
           amount: Number(amount),
-          waiting: await SpeedLudo.countDocuments({
+          waiting: await QuickLudo.countDocuments({
             status: "waiting",
             entryFee: amount,
           }),
           playing: Number(fakeplaying.playing) + Number(realplaying),
           isMeWaiting: wu ? true : false,
-          prize: await getPrize(Number(amount), "speed"),
+          prize: await getPrize(Number(amount), "quick"),
         };
       })
     );
@@ -964,24 +1223,57 @@ export const newSpeedMatchId = async () => {
   }
 };
 
+export const newQuickMatchId = async () => {
+  try {
+    const lastMatch = await QuickLudo.aggregate([
+      {
+        $match: { matchId: { $regex: /^QUICK\d+$/ } },
+      },
+      {
+        $addFields: {
+          numericPart: {
+            $toInt: {
+              $substrCP: ["$matchId", 5, { $strLenCP: "$matchId" }],
+            },
+          },
+        },
+      },
+      { $sort: { numericPart: -1 } },
+      { $limit: 1 },
+    ]);
+
+    let nextNumber = 19427;
+    if (lastMatch.length > 0) {
+      nextNumber = lastMatch[0].numericPart + 1;
+    }
+
+    return `QUICK${nextNumber}`;
+  } catch (error) {
+    console.error("Error generating match ID:", error);
+    throw error;
+  }
+};
+
 export const newRoomCode = async () => {
   try {
     const lastRoom = await OnlineGame.findOne({
-      roomCode: { $regex: /^0\d+$/ },
+      roomCode: { $regex: /^0\d{8}$/ }, // exactly 9 digits with leading 0
     })
-      .sort({ roomCode: -1 }) // Sorting by matchId
+      .sort({ roomCode: -1 })
       .exec();
 
-    let nextNumber = 14271427; // Default starting number
+    let nextNumber = 14271427; // default starting number
 
     if (lastRoom && lastRoom.roomCode) {
-      const match = lastRoom.roomCode.match(/^0(\d+)$/);
+      const match = lastRoom.roomCode.match(/^0(\d{8})$/);
       if (match) {
         nextNumber = parseInt(match[1], 10) + 1;
       }
     }
 
-    return `0${nextNumber}`;
+    // Pad to 8 digits after the leading 0
+    const roomCode = `0${String(nextNumber).padStart(8, "0")}`;
+    return roomCode;
   } catch (error) {
     console.error("Error generating new room code:", error);
     return null;
@@ -991,23 +1283,51 @@ export const newRoomCode = async () => {
 export const newSpeedRoomCode = async () => {
   try {
     const lastRoom = await SpeedLudo.findOne({
-      roomCode: { $regex: /^0\d+$/ },
+      roomCode: { $regex: /^0\d{8}$/ }, // exactly 9 digits, leading 0
     })
-      .sort({ roomCode: -1 }) // Sorting by matchId
+      .sort({ roomCode: -1 })
       .exec();
 
-    let nextNumber = 10256258; // Default starting number
+    let nextNumber = 10256258; // default starting number
 
     if (lastRoom && lastRoom.roomCode) {
-      const match = lastRoom.roomCode.match(/^0(\d+)$/);
+      const match = lastRoom.roomCode.match(/^0(\d{8})$/);
       if (match) {
         nextNumber = parseInt(match[1], 10) + 1;
       }
     }
 
-    return `0${nextNumber}`;
+    // Pad to 8 digits after the leading 0
+    const roomCode = `0${String(nextNumber).padStart(8, "0")}`;
+    return roomCode;
   } catch (error) {
-    console.error("Error generating new room code:", error);
+    console.error("Error generating new speed room code:", error);
+    return null;
+  }
+};
+
+export const newQuickRoomCode = async () => {
+  try {
+    const lastRoom = await QuickLudo.findOne({
+      roomCode: { $regex: /^0\d{8}$/ }, // exactly 9 digits with leading 0
+    })
+      .sort({ roomCode: -1 })
+      .exec();
+
+    let nextNumber = 29256258; // default starting number
+
+    if (lastRoom && lastRoom.roomCode) {
+      const match = lastRoom.roomCode.match(/^0(\d{8})$/);
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+
+    // Ensure the code is always 9 digits
+    const roomCode = `0${String(nextNumber).padStart(8, "0")}`;
+    return roomCode;
+  } catch (error) {
+    console.error("Error generating new quick room code:", error);
     return null;
   }
 };
@@ -1699,7 +2019,7 @@ export const joinMatchCancel = async (req, res) => {
 };
 
 export const verifyRoomCode = async (roomCode, retries = 2) => {
-  // return { apiWorking: false };
+  return { apiWorking: false };
   const config = await _config();
   const url = `https://ludo-king-room-code-api.p.rapidapi.com/game-checkroom/${roomCode}`;
 
@@ -1729,7 +2049,7 @@ export const verifyRoomCode = async (roomCode, retries = 2) => {
 };
 
 export const checkGameStatus = async (gameId, retries = 2) => {
-  // return { apiWorking: false };
+  return { apiWorking: false };
   const config = await _config();
   const url = `https://ludo-king-room-code-api.p.rapidapi.com/game-status/${gameId}`;
 
@@ -3268,6 +3588,15 @@ export const refBonusManager = async (winnerId, match) => {
   }
 };
 
+let sixDigitCounter = 0;
+export const generateMatchId = () => {
+  sixDigitCounter = (sixDigitCounter + 1) % 1000; // counter cycles 0-999
+  const timestampPart = Date.now() % 1000000; // last 6 digits of timestamp
+  // Combine timestamp and counter, then take last 6 digits
+  const raw = `${timestampPart}${sixDigitCounter.toString().padStart(3, "0")}`;
+  return raw.slice(-6); // always returns a 6-digit string
+};
+
 export const playClassicOnline = async (req, res) => {
   try {
     const userBalance = await balance(req);
@@ -3323,40 +3652,122 @@ export const playClassicOnline = async (req, res) => {
           message: "please do not click multiple times on play button",
         });
       }
+
+      // Prepare transaction for joiner before joining the match
+      const joinerBalance = await ubalance(req.user);
+      let neededMoney = openmatch.entryFee;
+      const newTxnjoiner = {
+        txnId: await newTxnId(),
+        userId: req.user._id,
+        amount: openmatch.entryFee,
+        cash: 0,
+        reward: 0,
+        bonus: 0,
+        remark: "Match Joined",
+        status: "completed",
+        txnType: "debit",
+        txnCtg: "bet",
+        matchId: openmatch._id,
+      };
+
+      // Deduct from Cash Wallet
+      if (neededMoney > 0) {
+        newTxnjoiner.cash = Math.min(neededMoney, joinerBalance.cash);
+        neededMoney -= newTxnjoiner.cash;
+      }
+      // Deduct from Bonus Wallet
+      if (neededMoney > 0) {
+        newTxnjoiner.bonus = Math.min(neededMoney, joinerBalance.bonus);
+        neededMoney -= newTxnjoiner.bonus;
+      }
+      // Deduct from Reward Wallet
+      if (neededMoney > 0) {
+        newTxnjoiner.reward = Math.min(neededMoney, joinerBalance.reward);
+        neededMoney -= newTxnjoiner.reward;
+      }
+
+      // Check if transaction already exists
+      const txnExists = await Transaction.exists({
+        userId: req.user._id,
+        matchId: openmatch._id,
+        txnCtg: "bet",
+        txnType: "debit",
+        status: "completed",
+      });
+      if (txnExists) {
+        return res.json({
+          success: false,
+          message: "transaction_already_created",
+        });
+      }
+
+      // Create transaction first
+      const joinerTxn = await Transaction.create(newTxnjoiner);
+      if (!joinerTxn) {
+        return res.json({
+          success: false,
+          message: "transaction_failed",
+        });
+      }
+
+      // Now join the match
       const test = await OnlineGame.updateOne(
-        { _id: openmatch._id, status: "waiting", "green.userId": null }, // Filter by user ID
+        { _id: openmatch._id, status: "waiting", "green.userId": null },
         {
           $set: {
             status: "running",
             "green.userId": req.user._id,
             startedAt: new Date(),
           },
-        } // Update the fullName field
+        }
       );
 
+      if (test.modifiedCount === 0) {
+        // Rollback transaction if match join fails (optional: implement refund logic)
+        await Transaction.deleteOne({ _id: joinerTxn._id });
+        return res.json({
+          success: false,
+          message: "match_join_failed",
+        });
+      }
+
+      // Clean up waiting matches for both users
       await OnlineGame.deleteMany({
         $and: [
-          { _id: { $ne: openmatch._id } }, // Exclude the current match
-          { status: "waiting" }, // Status condition
+          { _id: { $ne: openmatch._id } },
+          { status: "waiting" },
           {
             $or: [
               { "blue.userId": openmatch.blue.userId },
               { "blue.userId": req.user._id },
             ],
-          }, // Check if blue.userId matches either user
+          },
         ],
       });
 
       await SpeedLudo.deleteMany({
         $and: [
-          { _id: { $ne: openmatch._id } }, // Exclude the current match
-          { status: "waiting" }, // Status condition
+          { _id: { $ne: openmatch._id } },
+          { status: "waiting" },
           {
             $or: [
               { "blue.userId": openmatch.blue.userId },
               { "blue.userId": req.user._id },
             ],
-          }, // Check if blue.userId matches either user
+          },
+        ],
+      });
+
+      await QuickLudo.deleteMany({
+        $and: [
+          { _id: { $ne: openmatch._id } },
+          { status: "waiting" },
+          {
+            $or: [
+              { "blue.userId": openmatch.blue.userId },
+              { "blue.userId": req.user._id },
+            ],
+          },
         ],
       });
 
@@ -3366,89 +3777,50 @@ export const playClassicOnline = async (req, res) => {
           req.user.fullName + "(" + req.user.mobileNumber + ") joined match",
       });
 
-      // #########################################
+      // Host transaction (if not already created)
       const match = await OnlineGame.findOne({
         _id: openmatch._id,
         status: "running",
       });
-
       const host = await User.findOne({ _id: match.blue.userId });
-
       const hostBalance = await ubalance(host);
-      const joinerBalance = await ubalance(req.user);
-      const newTxnhost = {
-        txnId: await newTxnId(),
+
+      const hostTxnExists = await Transaction.exists({
         userId: host._id,
-        amount: match.entryFee,
-        cash: 0,
-        reward: 0,
-        bonus: 0,
-        remark: "Match Joined",
-        status: "completed",
-        txnType: "debit",
-        txnCtg: "bet",
         matchId: openmatch._id,
-      };
-
-      let neededMoney = match.entryFee;
-
-      // Deduct from Cash Wallet
-      if (neededMoney > 0) {
-        newTxnhost.cash = Math.min(neededMoney, hostBalance.cash);
-        neededMoney -= newTxnhost.cash;
-      }
-
-      // Deduct from Bonus Wallet
-      if (neededMoney > 0) {
-        newTxnhost.bonus = Math.min(neededMoney, hostBalance.bonus);
-        neededMoney -= newTxnhost.bonus;
-      }
-
-      // Deduct from Reward Wallet
-      if (neededMoney > 0) {
-        newTxnhost.reward = Math.min(neededMoney, hostBalance.reward);
-        neededMoney -= newTxnhost.reward;
-      }
-
-      const hostTxn = await Transaction.create(newTxnhost);
-
-      const newTxnjoiner = {
-        txnId: await newTxnId(),
-        userId: req.user._id,
-        amount: match.entryFee,
-        cash: 0,
-        reward: 0,
-        bonus: 0,
-        remark: "Match Joined",
-        status: "completed",
-        txnType: "debit",
         txnCtg: "bet",
-        matchId: openmatch._id,
-      };
-
-      neededMoney = match.entryFee;
-
-      // Deduct from Cash Wallet
-      if (neededMoney > 0) {
-        newTxnjoiner.cash = Math.min(neededMoney, joinerBalance.cash);
-        neededMoney -= newTxnjoiner.cash;
+        txnType: "debit",
+        status: "completed",
+      });
+      if (!hostTxnExists) {
+        let neededMoneyHost = match.entryFee;
+        const newTxnhost = {
+          txnId: await newTxnId(),
+          userId: host._id,
+          amount: match.entryFee,
+          cash: 0,
+          reward: 0,
+          bonus: 0,
+          remark: "Match Joined",
+          status: "completed",
+          txnType: "debit",
+          txnCtg: "bet",
+          matchId: openmatch._id,
+        };
+        if (neededMoneyHost > 0) {
+          newTxnhost.cash = Math.min(neededMoneyHost, hostBalance.cash);
+          neededMoneyHost -= newTxnhost.cash;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.bonus = Math.min(neededMoneyHost, hostBalance.bonus);
+          neededMoneyHost -= newTxnhost.bonus;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.reward = Math.min(neededMoneyHost, hostBalance.reward);
+          neededMoneyHost -= newTxnhost.reward;
+        }
+        await Transaction.create(newTxnhost);
       }
-
-      // Deduct from Bonus Wallet
-      if (neededMoney > 0) {
-        newTxnjoiner.bonus = Math.min(neededMoney, joinerBalance.bonus);
-        neededMoney -= newTxnjoiner.bonus;
-      }
-
-      // Deduct from Reward Wallet
-      if (neededMoney > 0) {
-        newTxnjoiner.reward = Math.min(neededMoney, joinerBalance.reward);
-        neededMoney -= newTxnjoiner.reward;
-      }
-
-      const joinerTxn = await Transaction.create(newTxnjoiner);
-
-      // #############################################
 
       await _log({
         matchId: openmatch._id,
@@ -3463,14 +3835,14 @@ export const playClassicOnline = async (req, res) => {
       });
     } else {
       const newMatch = {
-        matchId: await newOnlineMatchId(),
+        matchId: "CLASSIC" + generateMatchId(),
         type: "online",
         blue: {
           userId: req.user._id,
         },
         entryFee: amount,
         prize: await getPrize(amount, "online"),
-        roomCode: await newRoomCode(),
+        roomCode: generateUniqueRoomCode(),
       };
       const m = await OnlineGame.create(newMatch);
 
@@ -3536,7 +3908,20 @@ export const isAnyMatchRunning = async (req) => {
     ],
   }).sort({ createdAt: -1 });
 
-  if (runningmatch || runningmatch2 || runningmatch3) {
+  const runningmatch4 = await QuickLudo.findOne({
+    $and: [
+      { status: "running" }, // Exclude the current matchId
+      {
+        $or: [
+          { "blue.userId": req.user._id }, // Condition 1: Host userId matches
+          { "green.userId": req.user._id },
+          // Condition 2: Joiner userId matches
+        ],
+      },
+    ],
+  }).sort({ createdAt: -1 });
+
+  if (runningmatch || runningmatch2 || runningmatch3 || runningmatch4) {
     return true;
   } else {
     return false;
@@ -3567,13 +3952,22 @@ export const isAnyMatchRunningOrOpen = async (req) => {
     ],
   }).sort({ createdAt: -1 });
 
-  return !!(runningmatch || runningmatch2 || runningmatch3);
+  const runningmatch4 = await QuickLudo.findOne({
+    status: { $in: ["running", "waiting"] }, // Corrected status condition
+    $or: [
+      { "blue.userId": req.user._id }, // Blue userId matches
+      { "green.userId": req.user._id }, // Green userId matches
+    ],
+  }).sort({ createdAt: -1 });
+
+  return !!(runningmatch || runningmatch2 || runningmatch3 || runningmatch4);
 };
 
 export const playSpeedLudo = async (req, res) => {
   try {
     const userBalance = await balance(req);
     const amount = req.body.amount;
+    const { lite = false } = req.body;
 
     const isAMR = await isAnyMatchRunning(req);
     if (isAMR) {
@@ -3613,9 +4007,13 @@ export const playSpeedLudo = async (req, res) => {
       });
     }
 
+    let duration = game.duration;
+    if (lite) duration = game.durationLite;
+
     const openmatch = await SpeedLudo.findOne({
       status: "waiting",
       entryFee: amount,
+      duration: duration,
       "green.userId": null,
     });
 
@@ -3627,48 +4025,115 @@ export const playSpeedLudo = async (req, res) => {
         });
       }
 
-      // return res.json({
-      //   success: false,
-      //   message: "testing",
-      //   blue: openmatch.blue.userId,
-      //   current: req.user._id,
-      //   check: openmatch.blue.userId == req.userId,
-      // });
+      // Prepare transaction for joiner before joining the match
+      const joinerBalance = await ubalance(req.user);
+      let neededMoney = openmatch.entryFee;
+      const newTxnjoiner = {
+        txnId: await newTxnId(),
+        userId: req.user._id,
+        amount: openmatch.entryFee,
+        cash: 0,
+        reward: 0,
+        bonus: 0,
+        remark: "Match Joined",
+        status: "completed",
+        txnType: "debit",
+        txnCtg: "bet",
+        matchId: openmatch._id,
+      };
 
+      if (neededMoney > 0) {
+        newTxnjoiner.cash = Math.min(neededMoney, joinerBalance.cash);
+        neededMoney -= newTxnjoiner.cash;
+      }
+      if (neededMoney > 0) {
+        newTxnjoiner.bonus = Math.min(neededMoney, joinerBalance.bonus);
+        neededMoney -= newTxnjoiner.bonus;
+      }
+      if (neededMoney > 0) {
+        newTxnjoiner.reward = Math.min(neededMoney, joinerBalance.reward);
+        neededMoney -= newTxnjoiner.reward;
+      }
+
+      const txnExists = await Transaction.exists({
+        userId: req.user._id,
+        matchId: openmatch._id,
+        txnCtg: "bet",
+        txnType: "debit",
+        status: "completed",
+      });
+      if (txnExists) {
+        return res.json({
+          success: false,
+          message: "transaction_already_created",
+        });
+      }
+
+      // Create transaction first
+      const joinerTxn = await Transaction.create(newTxnjoiner);
+      if (!joinerTxn) {
+        return res.json({
+          success: false,
+          message: "transaction_failed",
+        });
+      }
+
+      // Now join the match
       const test = await SpeedLudo.updateOne(
-        { _id: openmatch._id, status: "waiting", "green.userId": null }, // Filter by user ID
+        { _id: openmatch._id, status: "waiting", "green.userId": null },
         {
           $set: {
             status: "running",
             "green.userId": req.user._id,
             startedAt: new Date(),
           },
-        } // Update the fullName field
+        }
       );
 
+      if (test.modifiedCount === 0) {
+        // Rollback transaction if match join fails
+        await Transaction.deleteOne({ _id: joinerTxn._id });
+        return res.json({
+          success: false,
+          message: "match_join_failed",
+        });
+      }
+
+      // Clean up waiting matches for both users
       await SpeedLudo.deleteMany({
         $and: [
-          { _id: { $ne: openmatch._id } }, // Exclude the current match
-          { status: "waiting" }, // Status condition
+          { _id: { $ne: openmatch._id } },
+          { status: "waiting" },
           {
             $or: [
               { "blue.userId": openmatch.blue.userId },
               { "blue.userId": req.user._id },
             ],
-          }, // Check if blue.userId matches either user
+          },
         ],
       });
 
       await OnlineGame.deleteMany({
         $and: [
-          { _id: { $ne: openmatch._id } }, // Exclude the current match
-          { status: "waiting" }, // Status condition
+          { status: "waiting" },
           {
             $or: [
               { "blue.userId": openmatch.blue.userId },
               { "blue.userId": req.user._id },
             ],
-          }, // Check if blue.userId matches either user
+          },
+        ],
+      });
+
+      await QuickLudo.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [
+              { "blue.userId": openmatch.blue.userId },
+              { "blue.userId": req.user._id },
+            ],
+          },
         ],
       });
 
@@ -3678,89 +4143,50 @@ export const playSpeedLudo = async (req, res) => {
           req.user.fullName + "(" + req.user.mobileNumber + ") joined match",
       });
 
-      // #########################################
+      // Host transaction (if not already created)
       const match = await SpeedLudo.findOne({
         _id: openmatch._id,
         status: "running",
       });
-
       const host = await User.findOne({ _id: match.blue.userId });
-
       const hostBalance = await ubalance(host);
-      const joinerBalance = await ubalance(req.user);
-      const newTxnhost = {
-        txnId: await newTxnId(),
+
+      const hostTxnExists = await Transaction.exists({
         userId: host._id,
-        amount: match.entryFee,
-        cash: 0,
-        reward: 0,
-        bonus: 0,
-        remark: "Match Joined",
-        status: "completed",
-        txnType: "debit",
-        txnCtg: "bet",
         matchId: openmatch._id,
-      };
-
-      let neededMoney = match.entryFee;
-
-      // Deduct from Cash Wallet
-      if (neededMoney > 0) {
-        newTxnhost.cash = Math.min(neededMoney, hostBalance.cash);
-        neededMoney -= newTxnhost.cash;
-      }
-
-      // Deduct from Bonus Wallet
-      if (neededMoney > 0) {
-        newTxnhost.bonus = Math.min(neededMoney, hostBalance.bonus);
-        neededMoney -= newTxnhost.bonus;
-      }
-
-      // Deduct from Reward Wallet
-      if (neededMoney > 0) {
-        newTxnhost.reward = Math.min(neededMoney, hostBalance.reward);
-        neededMoney -= newTxnhost.reward;
-      }
-
-      const hostTxn = await Transaction.create(newTxnhost);
-
-      const newTxnjoiner = {
-        txnId: await newTxnId(),
-        userId: req.user._id,
-        amount: match.entryFee,
-        cash: 0,
-        reward: 0,
-        bonus: 0,
-        remark: "Match Joined",
-        status: "completed",
-        txnType: "debit",
         txnCtg: "bet",
-        matchId: openmatch._id,
-      };
-
-      neededMoney = match.entryFee;
-
-      // Deduct from Cash Wallet
-      if (neededMoney > 0) {
-        newTxnjoiner.cash = Math.min(neededMoney, joinerBalance.cash);
-        neededMoney -= newTxnjoiner.cash;
+        txnType: "debit",
+        status: "completed",
+      });
+      if (!hostTxnExists) {
+        let neededMoneyHost = match.entryFee;
+        const newTxnhost = {
+          txnId: await newTxnId(),
+          userId: host._id,
+          amount: match.entryFee,
+          cash: 0,
+          reward: 0,
+          bonus: 0,
+          remark: "Match Joined",
+          status: "completed",
+          txnType: "debit",
+          txnCtg: "bet",
+          matchId: openmatch._id,
+        };
+        if (neededMoneyHost > 0) {
+          newTxnhost.cash = Math.min(neededMoneyHost, hostBalance.cash);
+          neededMoneyHost -= newTxnhost.cash;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.bonus = Math.min(neededMoneyHost, hostBalance.bonus);
+          neededMoneyHost -= newTxnhost.bonus;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.reward = Math.min(neededMoneyHost, hostBalance.reward);
+          neededMoneyHost -= newTxnhost.reward;
+        }
+        await Transaction.create(newTxnhost);
       }
-
-      // Deduct from Bonus Wallet
-      if (neededMoney > 0) {
-        newTxnjoiner.bonus = Math.min(neededMoney, joinerBalance.bonus);
-        neededMoney -= newTxnjoiner.bonus;
-      }
-
-      // Deduct from Reward Wallet
-      if (neededMoney > 0) {
-        newTxnjoiner.reward = Math.min(neededMoney, joinerBalance.reward);
-        neededMoney -= newTxnjoiner.reward;
-      }
-
-      const joinerTxn = await Transaction.create(newTxnjoiner);
-
-      // #############################################
 
       await _log({
         matchId: openmatch._id,
@@ -3775,17 +4201,287 @@ export const playSpeedLudo = async (req, res) => {
       });
     } else {
       const newMatch = {
-        matchId: await newSpeedMatchId(),
+        matchId: "SPEED" + generateMatchId(),
         type: "speedludo",
-        duration: game.duration,
+        duration: duration,
         blue: {
           userId: req.user._id,
         },
         entryFee: amount,
         prize: await getPrize(amount, "speed"),
-        roomCode: await newSpeedRoomCode(),
+        roomCode: generateUniqueRoomCode(),
       };
       const m = await SpeedLudo.create(newMatch);
+
+      await _log({
+        matchId: m._id,
+        message:
+          req.user.fullName +
+          "(" +
+          req.user.mobileNumber +
+          ") requested to play match",
+      });
+      return res.json({
+        success: true,
+        data: openmatch,
+      });
+    }
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const playQuickLudo = async (req, res) => {
+  try {
+    const userBalance = await balance(req);
+    const amount = req.body.amount;
+
+    const isAMR = await isAnyMatchRunning(req);
+    if (isAMR) {
+      return res.json({
+        success: false,
+        message: "already_in_match",
+      });
+    }
+
+    if (!validAmount(amount)) {
+      return res.json({
+        success: false,
+        message: "invalid_amount_msg",
+      });
+    }
+
+    if (amount > userBalance.balance) {
+      return res.json({
+        success: false,
+        message: "less_balance_msg",
+      });
+    }
+
+    const game = await Game.findOne({ game: "quickOnline" });
+
+    if (!game) {
+      return res.json({
+        success: false,
+        message: "game_not_found",
+      });
+    }
+
+    if (game.status != "live") {
+      return res.json({
+        success: false,
+        message: "not_active_game",
+      });
+    }
+
+    const openmatch = await QuickLudo.findOne({
+      status: "waiting",
+      entryFee: amount,
+      "green.userId": null,
+    });
+
+    if (openmatch) {
+      if (openmatch.blue.userId == req.userId) {
+        return res.json({
+          success: false,
+          message: "please do not click multiple times on play button",
+        });
+      }
+
+      // Prepare transaction for joiner before joining the match
+      const joinerBalance = await ubalance(req.user);
+      let neededMoney = openmatch.entryFee;
+      const newTxnjoiner = {
+        txnId: await newTxnId(),
+        userId: req.user._id,
+        amount: openmatch.entryFee,
+        cash: 0,
+        reward: 0,
+        bonus: 0,
+        remark: "Match Joined",
+        status: "completed",
+        txnType: "debit",
+        txnCtg: "bet",
+        matchId: openmatch._id,
+      };
+
+      // Deduct from Cash Wallet
+      if (neededMoney > 0) {
+        newTxnjoiner.cash = Math.min(neededMoney, joinerBalance.cash);
+        neededMoney -= newTxnjoiner.cash;
+      }
+      // Deduct from Bonus Wallet
+      if (neededMoney > 0) {
+        newTxnjoiner.bonus = Math.min(neededMoney, joinerBalance.bonus);
+        neededMoney -= newTxnjoiner.bonus;
+      }
+      // Deduct from Reward Wallet
+      if (neededMoney > 0) {
+        newTxnjoiner.reward = Math.min(neededMoney, joinerBalance.reward);
+        neededMoney -= newTxnjoiner.reward;
+      }
+
+      // Check if transaction already exists
+      const txnExists = await Transaction.exists({
+        userId: req.user._id,
+        matchId: openmatch._id,
+        txnCtg: "bet",
+        txnType: "debit",
+        status: "completed",
+      });
+      if (txnExists) {
+        return res.json({
+          success: false,
+          message: "transaction_already_created",
+        });
+      }
+
+      // Create transaction first
+      const joinerTxn = await Transaction.create(newTxnjoiner);
+      if (!joinerTxn) {
+        return res.json({
+          success: false,
+          message: "transaction_failed",
+        });
+      }
+
+      // Now join the match
+      const test = await QuickLudo.updateOne(
+        { _id: openmatch._id, status: "waiting", "green.userId": null },
+        {
+          $set: {
+            status: "running",
+            "green.userId": req.user._id,
+            startedAt: new Date(),
+          },
+        }
+      );
+
+      if (test.modifiedCount === 0) {
+        // Rollback transaction if match join fails
+        await Transaction.deleteOne({ _id: joinerTxn._id });
+        return res.json({
+          success: false,
+          message: "match_join_failed",
+        });
+      }
+
+      // Clean up waiting matches for both users
+      await QuickLudo.deleteMany({
+        $and: [
+          { _id: { $ne: openmatch._id } },
+          { status: "waiting" },
+          {
+            $or: [
+              { "blue.userId": openmatch.blue.userId },
+              { "blue.userId": req.user._id },
+            ],
+          },
+        ],
+      });
+
+      await OnlineGame.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [
+              { "blue.userId": openmatch.blue.userId },
+              { "blue.userId": req.user._id },
+            ],
+          },
+        ],
+      });
+
+      await SpeedLudo.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [
+              { "blue.userId": openmatch.blue.userId },
+              { "blue.userId": req.user._id },
+            ],
+          },
+        ],
+      });
+
+      await _log({
+        matchId: openmatch._id,
+        message:
+          req.user.fullName + "(" + req.user.mobileNumber + ") joined match",
+      });
+
+      // Host transaction (if not already created)
+      const match = await QuickLudo.findOne({
+        _id: openmatch._id,
+        status: "running",
+      });
+      const host = await User.findOne({ _id: match.blue.userId });
+      const hostBalance = await ubalance(host);
+
+      const hostTxnExists = await Transaction.exists({
+        userId: host._id,
+        matchId: openmatch._id,
+        txnCtg: "bet",
+        txnType: "debit",
+        status: "completed",
+      });
+      if (!hostTxnExists) {
+        let neededMoneyHost = match.entryFee;
+        const newTxnhost = {
+          txnId: await newTxnId(),
+          userId: host._id,
+          amount: match.entryFee,
+          cash: 0,
+          reward: 0,
+          bonus: 0,
+          remark: "Match Joined",
+          status: "completed",
+          txnType: "debit",
+          txnCtg: "bet",
+          matchId: openmatch._id,
+        };
+        if (neededMoneyHost > 0) {
+          newTxnhost.cash = Math.min(neededMoneyHost, hostBalance.cash);
+          neededMoneyHost -= newTxnhost.cash;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.bonus = Math.min(neededMoneyHost, hostBalance.bonus);
+          neededMoneyHost -= newTxnhost.bonus;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.reward = Math.min(neededMoneyHost, hostBalance.reward);
+          neededMoneyHost -= newTxnhost.reward;
+        }
+        await Transaction.create(newTxnhost);
+      }
+
+      await _log({
+        matchId: openmatch._id,
+        message:
+          "₹" +
+          openmatch.entryFee +
+          " is deducted from both users wallet and match is started",
+      });
+
+      return res.json({
+        success: true,
+      });
+    } else {
+      const newMatch = {
+        matchId: "QUICK" + generateMatchId(),
+        type: "quickludo",
+        moves: game.moves,
+        blue: {
+          userId: req.user._id,
+        },
+        entryFee: amount,
+        prize: await getPrize(amount, "quick"),
+        roomCode: generateUniqueRoomCode(),
+      };
+      const m = await QuickLudo.create(newMatch);
 
       await _log({
         matchId: m._id,
@@ -3807,6 +4503,17 @@ export const playSpeedLudo = async (req, res) => {
       message: error.response ? error.response.data.message : error.message,
     });
   }
+};
+
+let counter = 0;
+
+export const generateUniqueRoomCode = () => {
+  counter = (counter + 1) % 1000; // small counter to avoid collisions
+  const timestampPart = Date.now() % 1e6; // last 6 digits of timestamp
+  return `0${String(timestampPart).padStart(6, "0")}${String(counter).padStart(
+    3,
+    "0"
+  )}`;
 };
 
 // export const playSpeedLudo = async (req, res) => {
@@ -4080,13 +4787,54 @@ async function processTransaction(userId, entryFee, openmatch) {
 
 export const cancelSpeedLudo = async (req, res) => {
   try {
+    const game = await Game.findOne({ game: "speedOnline" });
+
+    let duration = game.duration;
+    if (req?.body?.lite) {
+      duration = game.durationLite;
+    }
+
+    console.log(duration);
+
     const match = await SpeedLudo.findOne({
+      entryFee: req.body.amount,
+      status: "waiting",
+      "blue.userId": req.user._id,
+      duration: duration,
+    });
+
+    await SpeedLudo.deleteOne(
+      { _id: match._id, status: "waiting", "blue.userId": req.user._id } // Filter by user ID
+    );
+
+    if (!match) {
+      return res.json({
+        success: false,
+        message: "cancel_match_not_possible",
+      });
+    }
+
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    ////console.log("createMatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const cancelQuickLudo = async (req, res) => {
+  try {
+    const match = await QuickLudo.findOne({
       entryFee: req.body.amount,
       status: "waiting",
       "blue.userId": req.user._id,
     });
 
-    await SpeedLudo.deleteOne(
+    await QuickLudo.deleteOne(
       { _id: match._id, status: "waiting", "blue.userId": req.user._id } // Filter by user ID
     );
 

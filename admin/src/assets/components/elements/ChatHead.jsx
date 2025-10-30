@@ -1,5 +1,5 @@
 import { IoArrowBackCircle } from "react-icons/io5";
-import User from "../../../../../backend/models/user.model";
+
 import { MdVerified } from "react-icons/md";
 import { IoIosCall } from "react-icons/io";
 import { Link } from "react-router-dom";

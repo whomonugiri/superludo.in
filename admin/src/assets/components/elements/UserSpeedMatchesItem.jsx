@@ -130,6 +130,9 @@ export const UserSpeedMatchesItem = ({ match }) => {
               <button className="btn btn-sm btn-info p-0 p-1 px-2 m-0 xs-small ">
                 {formatTimestamp(match.createdAt)}
               </button>
+              <button className="btn btn-sm btn-warning p-0 p-1 px-2 m-0 xs-small ">
+                {match.duration} Min
+              </button>
               <Link
                 to={`/speed-match/${match._id}`}
                 className="btn m-0 btn-sm p-0 px-2 text-white  xs-small py-1 alert-success"

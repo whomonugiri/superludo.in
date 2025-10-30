@@ -153,6 +153,9 @@ export const SpeedMatchInfo = ({ match, refresh }) => {
               </button>
             </div>
             <div className="d-flex gap-1">
+              <button className="btn btn-sm btn-info p-0 p-1 px-2 m-0 xs-small ">
+                Duration : {match.duration} Min
+              </button>
               {match.startedAt && (
                 <button className="btn btn-sm btn-info p-0 p-1 px-2 m-0 xs-small ">
                   Started at {formatTimestamp(match.startedAt)}

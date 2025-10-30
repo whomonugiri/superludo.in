@@ -5,6 +5,7 @@ import { DashButton } from "../elements/DashButton";
 import { ManualCommission } from "../elements/ManualCommission";
 import { OnlineCommission } from "../elements/OnlineCommission";
 import { SpeedCommission } from "../elements/SpeedCommission";
+import { QuickCommission } from "../elements/QuickCommission";
 
 export const ManageCommission = () => {
   const [menu, setMenu] = useState("Manual Matches Commissions");
@@ -31,11 +32,18 @@ export const ManageCommission = () => {
           action={handleMenu}
           text="SpeedLudo Matches Commissions"
         />
+
+        <DashButton
+          current={menu}
+          action={handleMenu}
+          text="QuickLudo Matches Commissions"
+        />
       </div>
 
       {menu == "Manual Matches Commissions" && <ManualCommission />}
       {menu == "Online Matches Commissions" && <OnlineCommission />}
       {menu == "SpeedLudo Matches Commissions" && <SpeedCommission />}
+      {menu == "QuickLudo Matches Commissions" && <QuickCommission />}
     </>
   );
 };

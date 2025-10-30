@@ -21,10 +21,15 @@ import { Profile } from "./components/pages/Profile";
 import { ClassicOnline } from "./components/pages/ClassicOnline";
 import OnlineClassic from "./onlineclassic";
 import SpeedLudo from "./speedludo";
+import QuickLudo from "./quickludo";
+
 import { SpeedLudoP } from "./components/pages/SpeedLudoP";
 import { Deposit } from "./components/pages/Deposit";
 import { AddMoney3 } from "./components/pages/AddMoney3";
 import { AddMoney2 } from "./components/pages/AddMoney2";
+import { Terms } from "./components/pages/Terms";
+import { QuickLudoP } from "./components/pages/QuickLudoP";
+import { SpeedLudoP2 } from "./components/pages/SpeedLudoP2";
 
 export const App = () => {
   const { loading } = useSelector((store) => store.auth);
@@ -38,6 +43,7 @@ export const App = () => {
           <Route path="/" element={<Master />}>
             <Route index element={<Homepage />} />
             <Route path="login" element={<Login />} />
+            <Route path="terms" element={<Terms />} />
             <Route path="register" element={<Register />} />
             <Route path="register/:referralCode" element={<Register />} />
             <Route path="verify-otp" element={<VerifyOtp />} />
@@ -53,11 +59,15 @@ export const App = () => {
             <Route path="classic-manual" element={<CreateMatch />} />
             <Route path="classic-online" element={<ClassicOnline />} />
             <Route path="speedludo" element={<SpeedLudoP />} />
+            <Route path="speedludo2" element={<SpeedLudoP2 />} />
+
+            <Route path="quickludo" element={<QuickLudoP />} />
 
             <Route path="match" element={<Match />} />
-            <Route path="matches" element={<Matches />} />
+            {/* <Route path="matches" element={<Matches />} /> */}
             <Route path="withdraw" element={<Withdraw />} />
             <Route path="refer" element={<Refer />} />
+
             <Route path="leaderboard" element={<Leaderboard />} />
             <Route path="profile" element={<Profile />} />
           </Route>
@@ -67,6 +77,7 @@ export const App = () => {
             element={<OnlineClassic />}
           />
           <Route path="/speed-ludo-game/:gameUid" element={<SpeedLudo />} />
+          <Route path="/quick-ludo-game/:gameUid" element={<QuickLudo />} />
         </Routes>
       )}
     </>

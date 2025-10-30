@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { GiSandsOfTime, GiTakeMyMoney } from "react-icons/gi";
 import { GrCurrency } from "react-icons/gr";
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
-import { RiErrorWarningLine } from "react-icons/ri";
+import { RiCopperCoinFill, RiErrorWarningLine } from "react-icons/ri";
 import { RxCross2 } from "react-icons/rx";
 
 export const formatTimestamp = (timestamp) => {
@@ -76,45 +76,120 @@ const type = {
 
 export const Txn = (props) => {
   const { t } = useTranslation();
+  const date = new Date(props.createdAt);
+  const day = date.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
+  const time = date.toLocaleString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const gst = props.amount * 0.28;
+  const gam = props.amount - gst;
+  function formatNumber(num) {
+    // If the number has decimal part
+    return num % 1 === 0 ? num.toString() : num.toFixed(2);
+  }
   return (
     <>
-      <div className="alert alert-success p-0 px-2 py-1 my-2">
+      {props.txnCtg == "deposit" &&
+        props.status == "completed" &&
+        props.txnType == "credit" && (
+          <div className=" border-bottom rounded-2  p-0 px-2 py-2">
+            <div className=" d-flex justify-content-between align-items-center mt-1">
+              <div className="d-flex align-items-center gap-2">
+                <div
+                  className="opacity-75 text-center"
+                  style={{
+                    paddingRight: "10px",
+                    borderRight: "1px solid rgba(0,0,0,0.5)",
+                  }}
+                >
+                  <div className="">{day}</div>
+                  <div style={{ fontSize: "12px" }}>{time.toUpperCase()}</div>
+                </div>
+                <div style={{ lineHeight: "18px" }}>
+                  <div className="fw-bold small">Deposit Cashback 💸</div>
+                  <div
+                    className="d-flex justify-content-between small opacity-50 "
+                    style={{ fontSize: "12px" }}
+                  >
+                    <div>
+                      {props.status == "completed"
+                        ? t(type[props.txnType])
+                        : ""}
+                      {props.status == "cancelled" ? t("txn_cancel") : ""}
+                      {props.status == "failed" ? t("txn_failed") : ""}
+                      {props.status == "pending" ? "" : ""}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ lineHeight: "19px" }} className="">
+                <div className="fw-bold fs-6 text-end text-nowrap d-flex gap-1 align-items-center">
+                  {props.txnType == "debit" ? (
+                    <span className="text-danger">(-)</span>
+                  ) : (
+                    <span className="text-success">(+)</span>
+                  )}{" "}
+                  ₹ {formatNumber(gst)}
+                </div>
+                <div
+                  style={{ fontSize: "12px" }}
+                  className="opacity-75 text-end"
+                >
+                  {status[props.status]}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+      <div className=" border-bottom rounded-2  p-0 px-2 py-2">
         <div className=" d-flex justify-content-between align-items-center mt-1">
           <div className="d-flex align-items-center gap-2">
             <div
-              className="bg-success d-flex justify-content-center align-items-center fs-3 text-white rounded-4"
-              style={{ width: "40px", height: "40px" }}
+              className="opacity-75 text-center"
+              style={{
+                paddingRight: "10px",
+                borderRight: "1px solid rgba(0,0,0,0.5)",
+              }}
             >
-              <GiTakeMyMoney />
+              <div className="">{day}</div>
+              <div style={{ fontSize: "12px" }}>{time.toUpperCase()}</div>
             </div>
             <div style={{ lineHeight: "18px" }}>
-              <div style={{ fontSize: "12px" }} className="opacity-75">
-                {props.txnId}
-              </div>
               <div className="fw-bold small">{t(props.remark)}</div>
+              <div
+                className="d-flex justify-content-between small opacity-50 "
+                style={{ fontSize: "12px" }}
+              >
+                <div>
+                  {props.status == "completed" ? t(type[props.txnType]) : ""}
+                  {props.status == "cancelled" ? t("txn_cancel") : ""}
+                  {props.status == "failed" ? t("txn_failed") : ""}
+                  {props.status == "pending" ? "" : ""}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{ lineHeight: "19px" }}>
-            <div className="fw-bold fs-4 text-end text-nowrap">
-              {props.txnType == "debit" ? "-" : "+"} ₹{props.amount}
+          <div style={{ lineHeight: "19px" }} className="">
+            <div className="fw-bold fs-6 text-end text-nowrap d-flex gap-1 align-items-center">
+              {props.txnType == "debit" ? (
+                <span className="text-danger">(-)</span>
+              ) : (
+                <span className="text-success">(+)</span>
+              )}{" "}
+              ₹{props.txnCtg == "deposit" ? formatNumber(gam) : props.amount}
             </div>
             <div style={{ fontSize: "12px" }} className="opacity-75 text-end">
               {status[props.status]}
             </div>
-          </div>
-        </div>
-        <div
-          className="d-flex justify-content-between small opacity-50 mt-1"
-          style={{ fontSize: "12px" }}
-        >
-          <div>{formatTimestamp(props.createdAt)}</div>
-
-          <div>
-            {props.status == "completed" ? t(type[props.txnType]) : ""}
-            {props.status == "cancelled" ? t("txn_cancel") : ""}
-            {props.status == "failed" ? t("txn_failed") : ""}
-            {props.status == "pending" ? "" : ""}
           </div>
         </div>
       </div>

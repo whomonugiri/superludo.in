@@ -74,7 +74,10 @@ export const Matches = () => {
   return (
     <>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="my-2 d-flex gap-2 justify-content-between overflow-scroll py-2">
+        <div className="my-2 fw-bold border-bottom  mb-3 fs-4">
+          {t("sidebar_match_history")}
+        </div>
+        {/* <div className="my-2 d-flex gap-2 justify-content-between overflow-scroll py-2">
           <Button6 text="ALL" type={ctg} action={changeType} working={false} />
           <Button6 text="WON" type={ctg} action={changeType} working={false} />
           <Button6 text="LOST" type={ctg} action={changeType} working={false} />
@@ -84,7 +87,7 @@ export const Matches = () => {
             action={changeType}
             working={false}
           />
-        </div>
+        </div> */}
         {matches.length < 1 && <NoData text={t("no_match_found")} />}
         <div className="">
           {matches.map((match) => {

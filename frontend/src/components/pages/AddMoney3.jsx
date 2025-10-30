@@ -28,6 +28,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateBalance, updateWallet } from "../../contexts/slices/userSlice";
 import { motion } from "motion/react";
 import { IoChevronBackCircleOutline } from "react-icons/io5";
+import GST from "../elements/GST";
 export const AddMoney3 = () => {
   const {
     isAuth,
@@ -42,6 +43,12 @@ export const AddMoney3 = () => {
   const [btnlink, setBtnlink] = useState(null);
   const [txnid, setTxnid] = useState(false);
   const [am, setAm] = useState(0);
+
+  const [dpa, setDpa] = useState(0);
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setDpa(value);
+  };
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const upiId = "7669006847@axisbank";
@@ -49,6 +56,7 @@ export const AddMoney3 = () => {
   const add = (amount) => {
     $("#addmoney_amount").val(amount);
     $("#addmoney_amount2").val(amount);
+    setDpa(amount);
   };
 
   const createPaymentQr = async () => {
@@ -225,6 +233,7 @@ export const AddMoney3 = () => {
                     label={t("amount_label")}
                     id="addmoney_amount"
                     type="number"
+                    action={handleChange}
                   />
                   <div className="d-flex  justify-content-between mb-2">
                     <Button2
@@ -363,6 +372,7 @@ export const AddMoney3 = () => {
                 label={t("amount_label")}
                 id="addmoney_amount2"
                 type="number"
+                action={handleChange}
               />
 
               <div className="d-flex justify-content-between mb-2">
@@ -418,6 +428,7 @@ export const AddMoney3 = () => {
           </div>
         </Card>
       </motion.div>
+      <GST amount={Number(dpa)} />
     </>
   );
 };

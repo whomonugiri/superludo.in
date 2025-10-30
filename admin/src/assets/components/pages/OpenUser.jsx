@@ -11,6 +11,7 @@ import { UserManualMatches } from "../elements/UserManualMatches";
 import { useSelector } from "react-redux";
 import { UserOnlineMatches } from "../elements/UserOnlineMatches";
 import { UserSpeedMatches } from "../elements/UserSpeedMatches";
+import { UserQuickMatches } from "../elements/UserQuickMatches";
 
 export const OpenUser = () => {
   const { userId } = useParams();
@@ -93,6 +94,11 @@ export const OpenUser = () => {
               action={handleMenu}
               text="Speed Matches"
             />
+            <DashButton
+              current={menu}
+              action={handleMenu}
+              text="Quick Matches"
+            />
             <DashButton current={menu} action={handleMenu} text="KYC" />
             {(_access.includes("ADD TRANSACTION") || _isSuperadmin) && (
               <DashButton
@@ -108,6 +114,7 @@ export const OpenUser = () => {
           {menu == "Manual Matches" && <UserManualMatches user={user} />}
           {menu == "Online Matches" && <UserOnlineMatches user={user} />}
           {menu == "Speed Matches" && <UserSpeedMatches user={user} />}
+          {menu == "Quick Matches" && <UserQuickMatches user={user} />}
 
           {menu == "KYC" && <UserKyc user={user} />}
           {menu == "Add Transaction" && (

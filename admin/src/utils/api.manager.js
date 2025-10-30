@@ -120,11 +120,13 @@ export function transformGameData(gameData) {
     winner: gameData.winner,
     looser: gameData.looser,
     amount: gameData.amount,
+
     data: gameData.data.map((player) => ({
       fullName: player.fullName,
       gotiWin: player.winners,
       life: player.life,
       color: player.color,
+      playerExited: player.exit ? true : false,
       score: player.score,
       players: player.players.map((goti) => ({
         gotiNo: goti.index,

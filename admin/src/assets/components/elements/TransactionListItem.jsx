@@ -38,6 +38,8 @@ export const TransactionListItem = ({ txn }) => {
               <Link
                 to={`/${txn.match.type == "manual" ? "match" : ""}${
                   txn.match.type == "speedludo" ? "speed-match" : ""
+                }${
+                  txn.match.type == "quickludo" ? "quick-match" : ""
                 }${txn.match.type == "online" ? "online-match" : ""}/${
                   txn.match._id
                 }`}

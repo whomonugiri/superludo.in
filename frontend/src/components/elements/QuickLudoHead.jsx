@@ -11,7 +11,7 @@ export const QuickLudoHead = (props) => {
       {" "}
       <div className="mt-3 border-bottom">
         <div className="text-center justify-content-between mb-2 align-items-center">
-          <div className="fw-bold  fs-5 mb-2 ">QUICK LUDO</div>
+          <div className="fw-bold  fs-5 mb-2 ">MOVES LUDO</div>
           <div className="">
             {/* //user */}
             <button

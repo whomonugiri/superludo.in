@@ -4,6 +4,7 @@ import { Link } from "react-router";
 
 export const GameCard = (props) => {
   const { t } = useTranslation();
+  if (props.title == "Quick Ludo") props.title = "Moves Ludo";
   ////console.log(props);
   return (
     <>

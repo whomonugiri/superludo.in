@@ -120,7 +120,7 @@ export const UserInfo = ({ user, refresh }) => {
                     />
                   </div>
                   <div className="xs-small text-center">
-                    {flags._y ? "Youtuber" : "Subscriber"}
+                    {flags._y ? "Name Change" : "Name Change"}
                   </div>
                 </div>
               </PostForm>

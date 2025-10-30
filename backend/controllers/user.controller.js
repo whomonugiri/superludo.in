@@ -815,6 +815,13 @@ export const updateMe = async (req, res) => {
 
     const up = {};
 
+    if (req.body.fullName != req.user.fullName && req.user._y !== true) {
+      return res.json({
+        success: false,
+        message: "you are not allowed to change name",
+      });
+    }
+
     up.fullName = req.body.fullName;
 
     if (req.body.profilePic) {

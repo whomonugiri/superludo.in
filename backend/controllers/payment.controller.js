@@ -170,17 +170,17 @@ export const submitWithdrawReq = async (req, res) => {
       // ✅ Get current time in IST as a real Date object
 
       // ✅ 3 hours ago in IST
-      const threeHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+      const threeHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000);
 
       // ✅ Check if last withdrawal was within last 3 hours
       if (lastWithdraw.createdAt > threeHoursAgo) {
         const nextAllowed = new Date(
-          lastWithdraw.createdAt.getTime() + 6 * 60 * 60 * 1000
+          lastWithdraw.createdAt.getTime() + 8 * 60 * 60 * 1000
         );
 
         return res.json({
           success: false,
-          message: `You can only withdraw 1 time in 6 hours, you can place your withdraw request after ${nextAllowed.toLocaleTimeString(
+          message: `You can only withdraw 1 time in 8 hours, you can place your withdraw request after ${nextAllowed.toLocaleTimeString(
             "en-IN",
             {
               hour: "2-digit",

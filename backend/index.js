@@ -31,6 +31,8 @@ import {
 } from "./controllers/match.controller.js";
 import { SpeedLudo } from "./models/speedludo.js";
 import DEVELOPER from "./models/developer.model.js";
+import User from "./models/user.model.js";
+import { oldbalance } from "./controllers/user.controller.js";
 
 dotenv.config({});
 const PORT = process.env.PORT || 3000;
@@ -97,21 +99,28 @@ app.get("/bot1427", async (req, res) => {
   }
 });
 
-// app.get("/newmatch", async (req, res) => {
-//   await SpeedLudo.create({
-//     type: "speedludo",
-//     matchId: "SPEED14236",
-//     totalJoined: 4,
-//     entryFee: 10,
-//     prize1: 20,
-//     prize2: 15,
-//     roomCode: "0395478658",
-//     status: "running",
-//     startedAt: Date.now(),
-//   });
+app.get("/updateusers", async (req, res) => {
+  try {
+    const users = await User.find({mobileNumber:"6395740305"}, { mobileNumber: 1, balance: 1 }).lean();
 
-//   res.send("its working");
-// });
+    for (let user of users) {
+      user.orignal =  await oldbalance({ user });
+
+   
+    }
+
+    return res.json(users);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      status: false,
+      message: "Something went wrong"
+    });
+  }
+});
+
+
 
 io.on("connection", (socket) => {
   socketManager(io, socket);

@@ -40,11 +40,25 @@ const userSchema = new mongoose.Schema(
     },
     upiId: {
       type: String,
+    }, // --- CORRECTED: Explicitly define nested types for 'balance' ---
+    balance: {
+      cash: { type: Number, default: 0 },
+      bonus: { type: Number, default: 0 },
+      reward: { type: Number, default: 0 },
+    }, // --- CORRECTED: Explicitly define nested types for 'stats' ---
+    stats: {
+      totalPlayed: { type: Number, default: 0 },
+      totalWon: { type: Number, default: 0 },
+      totalLost: { type: Number, default: 0 },
+      totalWinned: { type: Number, default: 0 },
+      totalReferralEarnings: { type: Number, default: 0 },
+      totalReferred: { type: Number, default: 0 },
     },
     bankName: {
       type: String,
     },
     bankAccountNo: {
+      // Consider renaming to bankAccountNumber for consistency
       type: String,
     },
     bankIfscCode: {
@@ -53,20 +67,20 @@ const userSchema = new mongoose.Schema(
     kyc: {
       type: Boolean,
       default: false,
-    },
+    }, // --- CORRECTED: Use 'Object' or 'Mixed' instead of 'JSON' ---
     kycData: {
-      type: JSON,
+      type: Object, // Stores arbitrary object/JSON data
       default: null,
-    },
+    }, // --- CORRECTED: Use 'Object' or 'Mixed' instead of 'JSON' ---
     kycApiResponse: {
-      type: JSON,
+      type: Object, // Stores arbitrary object/JSON data
       default: null,
-    },
+    }, // '_su' and '_y' appear to be internal/admin flags
     _su: {
       type: Boolean,
       default: false,
     },
-     _y: {
+    _y: {
       type: Boolean,
       default: false,
     },

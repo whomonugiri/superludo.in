@@ -48,6 +48,15 @@ export const refBonusManager = async (winnerId, match) => {
       };
 
       await Transaction.create(newTxn_l1);
+      await User.updateOne(
+        { _id: level1_ref._id },
+        {
+          $inc: {
+            "balance.bonus": newTxn_l1.bonus,
+            "stats.totalReferralEarnings": newTxn_l1.bonus,
+          },
+        }
+      );
 
       await _log({
         matchId: match._id,
@@ -83,6 +92,15 @@ export const refBonusManager = async (winnerId, match) => {
       };
 
       await Transaction.create(newTxn_l2);
+      await User.updateOne(
+        { _id: level2_ref._id },
+        {
+          $inc: {
+            "balance.bonus": newTxn_l2.bonus,
+            "stats.totalReferralEarnings": newTxn_l2.bonus,
+          },
+        }
+      );
       await _log({
         matchId: match._id,
         message:
@@ -127,7 +145,10 @@ export const newTxnId = async () => {
 
 export const fetchGameData = async ({ gameUid, token, deviceId }) => {
   try {
-    const decode = await jwt.verify(token, "qwertyuiopmbvsfghj545k");
+    const decode = await jwt.verify(
+      token,
+      "qwer"
+    );
     let user = null;
     if (decode) {
       user = await User.findOne({
@@ -203,6 +224,56 @@ export const updateGameData = async ({ gameUid, data }) => {
         );
 
         // #######################
+        // 1. Get all transactions for this match
+        const allTxns = await Transaction.find({ matchId: game._id });
+
+        // 2. Reverse balance updates based on transaction type/category
+        const bulkOps = [];
+
+        for (const tx of allTxns) {
+          let incObj = { cash: 0, reward: 0, bonus: 0 };
+
+          if (tx.txnType === "debit" && tx.txnCtg === "bet") {
+            // reverse bet debit -> add money back
+            incObj.cash = tx.cash;
+            incObj.reward = tx.reward;
+            incObj.bonus = tx.bonus;
+          }
+
+          if (tx.txnType === "credit" && tx.txnCtg === "reward") {
+            // reverse reward credit -> subtract money
+            incObj.cash = -tx.cash;
+            incObj.reward = -tx.reward;
+            incObj.bonus = -tx.bonus;
+          }
+
+          if (tx.txnType === "credit" && tx.txnCtg === "referral") {
+            // reverse referral credit -> subtract money
+            incObj.cash = -tx.cash;
+            incObj.reward = -tx.reward;
+            incObj.bonus = -tx.bonus;
+          }
+
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: tx.userId },
+              update: {
+                $inc: {
+                  "balance.cash": incObj.cash,
+                  "balance.reward": incObj.reward,
+                  "balance.bonus": incObj.bonus,
+                },
+              },
+            },
+          });
+        }
+
+        // 3. Execute all updates at once
+        if (bulkOps.length > 0) {
+          await User.bulkWrite(bulkOps);
+        }
+
+        // 4. Clear transactions
         await Transaction.deleteMany({ matchId: game._id });
 
         await _log({
@@ -236,6 +307,13 @@ export const updateGameData = async ({ gameUid, data }) => {
           } // Update the fullName field
         );
 
+        const bet = await Transaction.findOne({
+          matchId: game._id,
+          userId: game[data.win].userId,
+          txnCtg: "bet",
+          txnType: "debit",
+        });
+
         // #######################
         const txnid = await newTxnId();
         const NewTxn = {
@@ -255,6 +333,28 @@ export const updateGameData = async ({ gameUid, data }) => {
         await Transaction.create(NewTxn);
 
         const h = await User.findOne({ _id: game[data.win].userId });
+        await User.updateOne(
+          { _id: h._id },
+          {
+            $inc: {
+              "balance.reward": NewTxn.reward,
+              "balance.cash": NewTxn.cash,
+              "balance.bonus": NewTxn.bonus,
+              "stats.totalPlayed": 1,
+              "stats.totalWon": 1,
+              "stats.totalWinned": NewTxn.reward,
+            },
+          }
+        );
+        await User.updateOne(
+          { _id: game[data.lose].userId },
+          {
+            $inc: {
+              "stats.totalPlayed": 1,
+              "stats.totalLost": 1,
+            },
+          }
+        );
         await _log({
           matchId: game._id,
           message:
@@ -299,6 +399,56 @@ export const cancelGame = async ({ gameUid, data }) => {
         } // Update the fullName field
       );
 
+      // 1. Get all transactions for this match
+      const allTxns = await Transaction.find({ matchId: game._id });
+
+      // 2. Reverse balance updates based on transaction type/category
+      const bulkOps = [];
+
+      for (const tx of allTxns) {
+        let incObj = { cash: 0, reward: 0, bonus: 0 };
+
+        if (tx.txnType === "debit" && tx.txnCtg === "bet") {
+          // reverse bet debit -> add money back
+          incObj.cash = tx.cash;
+          incObj.reward = tx.reward;
+          incObj.bonus = tx.bonus;
+        }
+
+        if (tx.txnType === "credit" && tx.txnCtg === "reward") {
+          // reverse reward credit -> subtract money
+          incObj.cash = -tx.cash;
+          incObj.reward = -tx.reward;
+          incObj.bonus = -tx.bonus;
+        }
+
+        if (tx.txnType === "credit" && tx.txnCtg === "referral") {
+          // reverse referral credit -> subtract money
+          incObj.cash = -tx.cash;
+          incObj.reward = -tx.reward;
+          incObj.bonus = -tx.bonus;
+        }
+
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: tx.userId },
+            update: {
+              $inc: {
+                "balance.cash": incObj.cash,
+                "balance.reward": incObj.reward,
+                "balance.bonus": incObj.bonus,
+              },
+            },
+          },
+        });
+      }
+
+      // 3. Execute all updates at once
+      if (bulkOps.length > 0) {
+        await User.bulkWrite(bulkOps);
+      }
+
+      // 4. Clear transactions
       await Transaction.deleteMany({ matchId: game._id });
 
       await _log({

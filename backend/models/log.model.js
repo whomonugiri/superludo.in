@@ -16,5 +16,10 @@ const logSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+logSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 30 * 24 * 60 * 60 } // Logs expire after 30 days
+);
+
 const Log = mongoose.model("Log", logSchema);
 export default Log;

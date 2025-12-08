@@ -41,4 +41,9 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+messageSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 3 * 24 * 60 * 60 } // Logs expire after 30 days
+);
+
 export const Message = mongoose.model("Message", messageSchema);

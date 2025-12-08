@@ -25,6 +25,7 @@ import Commission from "../../models/commission.model.js";
 import { OnlineGame } from "../../models/onlinegame.js";
 import { SpeedLudo } from "../../models/speedludo.js";
 import { QuickLudo } from "../../models/quickludo.js";
+import { OnlineGame2 } from "../../models/onlinegame2.js";
 export const _log = async (log) => {
   await Log.create(log);
 };
@@ -305,104 +306,11 @@ export const fetchUser = async (req, res) => {
     user.stat = {};
 
     // Batch multiple queries using Promise.all() for better performance
-    const [
-      totalRef,
-      refBy,
-      totalPlayedMatches,
-      totalPlayedMatches2,
-      totalPlayedMatches3,
-      totalPlayedMatches4,
-
-      totalWonMatches,
-      totalWonMatches2,
-      totalWonMatches3,
-      totalWonMatches4,
-
-      totalLostMatches,
-      totalLostMatches2,
-      totalLostMatches3,
-      totalLostMatches4,
-
-      depositStats,
-      withdrawalStats,
-      winningsStats,
-      referralStats,
-    ] = await Promise.all([
+    const [refBy, depositStats, withdrawalStats] = await Promise.all([
       // Count total played matches
-      User.countDocuments({ referBy: user.referralCode }),
+
       User.findOne({ referralCode: user.referBy }),
-      ManualMatch.countDocuments({
-        status: "completed",
-        $or: [{ "host.userId": user._id }, { "joiner.userId": user._id }],
-      }),
-      OnlineGame.countDocuments({
-        status: "completed",
-        $or: [{ "blue.userId": user._id }, { "green.userId": user._id }],
-      }),
-      SpeedLudo.countDocuments({
-        status: "completed",
-        $or: [{ "blue.userId": user._id }, { "green.userId": user._id }],
-      }),
-      QuickLudo.countDocuments({
-        status: "completed",
-        $or: [{ "blue.userId": user._id }, { "green.userId": user._id }],
-      }),
 
-      // Count total won matches
-      ManualMatch.countDocuments({
-        status: "completed",
-        "winner.userId": user._id,
-      }),
-      OnlineGame.countDocuments({
-        status: "completed",
-        $or: [
-          { "blue.userId": user._id, "blue.result": "winner" },
-          { "green.userId": user._id, "green.result": "winner" },
-        ],
-      }),
-
-      SpeedLudo.countDocuments({
-        status: "completed",
-        $or: [
-          { "blue.userId": user._id, "blue.result": "winner" },
-          { "green.userId": user._id, "green.result": "winner" },
-        ],
-      }),
-      QuickLudo.countDocuments({
-        status: "completed",
-        $or: [
-          { "blue.userId": user._id, "blue.result": "winner" },
-          { "green.userId": user._id, "green.result": "winner" },
-        ],
-      }),
-
-      // Count total lost matches
-      ManualMatch.countDocuments({
-        status: "completed",
-        "looser.userId": user._id,
-      }),
-      OnlineGame.countDocuments({
-        status: "completed",
-        $or: [
-          { "blue.userId": user._id, "blue.result": "looser" },
-          { "green.userId": user._id, "green.result": "looser" },
-        ],
-      }),
-      SpeedLudo.countDocuments({
-        status: "completed",
-        $or: [
-          { "blue.userId": user._id, "blue.result": "looser" },
-          { "green.userId": user._id, "green.result": "looser" },
-        ],
-      }),
-
-      QuickLudo.countDocuments({
-        status: "completed",
-        $or: [
-          { "blue.userId": user._id, "blue.result": "looser" },
-          { "green.userId": user._id, "green.result": "looser" },
-        ],
-      }),
       // Sum deposit amounts & count deposit transactions
       Transaction.aggregate([
         {
@@ -440,57 +348,16 @@ export const fetchUser = async (req, res) => {
           },
         },
       ]),
-
-      // Sum total winnings
-      Transaction.aggregate([
-        {
-          $match: {
-            status: "completed",
-            txnCtg: "reward",
-            txnType: "credit",
-            userId: user._id,
-          },
-        },
-        { $group: { _id: null, totalAmount: { $sum: "$amount" } } },
-      ]),
-
-      // Sum total referral earnings & count referrals
-      Transaction.aggregate([
-        {
-          $match: {
-            status: "completed",
-            txnCtg: "referral",
-            txnType: "credit",
-            userId: user._id,
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalAmount: { $sum: "$amount" },
-            count: { $sum: 1 },
-          },
-        },
-      ]),
     ]);
 
     // Assign results
-    user.stat.totalPlayedMatches = totalPlayedMatches;
-    user.stat.totalPlayedMatches += totalPlayedMatches2;
-    user.stat.totalPlayedMatches += totalPlayedMatches3;
-    user.stat.totalPlayedMatches += totalPlayedMatches4;
+    user.stat.totalPlayedMatches = user.stats.totalPlayed;
 
-    user.stat.totalWonMatches = totalWonMatches;
-    user.stat.totalWonMatches += totalWonMatches2;
-    user.stat.totalWonMatches += totalWonMatches3;
-    user.stat.totalWonMatches += totalWonMatches4;
+    user.stat.totalWonMatches = user.stats.totalWon;
 
-    user.stat.totalLostMatches = totalLostMatches;
-    user.stat.totalLostMatches += totalLostMatches2;
-    user.stat.totalLostMatches += totalLostMatches3;
-    user.stat.totalLostMatches += totalLostMatches4;
+    user.stat.totalLostMatches = user.stats.totalLost;
 
-    user.stat.totalRef = totalRef;
+    user.stat.totalRef = user.stats.totalReferred;
 
     // Assign deposit stats safely
     user.stat.totalDeposit =
@@ -507,14 +374,11 @@ export const fetchUser = async (req, res) => {
       withdrawalStats.length > 0 ? withdrawalStats[0].count : 0;
 
     // Assign winnings stats safely
-    user.stat.totalWinnings =
-      winningsStats.length > 0 ? winningsStats[0].totalAmount : 0;
+    user.stat.totalWinnings = user.stats.totalWinned;
 
     // Assign referral stats safely
-    user.stat.totalReferralEarnings =
-      referralStats.length > 0 ? referralStats[0].totalAmount : 0;
-    user.stat.totalReferralCount =
-      referralStats.length > 0 ? referralStats[0].count : 0;
+    user.stat.totalReferralEarnings = user.stats.totalReferralEarnings;
+    user.stat.totalReferralCount = user.stats.totalReferred;
     user.refBy = refBy;
 
     const _user = user;
@@ -567,6 +431,12 @@ export const fetchUserTransactions = async (req, res) => {
 
         if (!txn.match) {
           txn.match = await QuickLudo.findOne({ _id: txn.matchId });
+        }
+
+        if (!txn.match) {
+          txn.match = await OnlineGame2.findOne({ _id: txn.matchId }).lean();
+
+          if (txn.match) txn.match.type = "online2";
         }
         return txn;
       })
@@ -687,6 +557,79 @@ export const fetchUserOnlineMatches = async (req, res) => {
 
     // Execute the query with pagination
     const matches = await OnlineGame.find(filter.$and.length ? filter : {})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const _matches = await Promise.all(
+      matches.map(async (match) => {
+        match.hostData = await User.findOne({ _id: match.blue.userId });
+        match.joinerData = await User.findOne({ _id: match.green.userId });
+
+        return match;
+      })
+    );
+
+    return res.json({
+      success: true,
+      data: _matches,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchUserOnlineMatches2 = async (req, res) => {
+  try {
+    const limit = 20;
+    const skip = (req.body.page - 1) * limit;
+    let cond = req.body.cond;
+
+    const filter = { $and: [] };
+
+    // Filter by status if provided
+    if (cond.status && cond.status !== "all") {
+      filter.$and.push({ status: cond.status });
+    }
+
+    // Filter by win/loss conditions
+    if (cond.result === "won") {
+      filter.$and.push({
+        $or: [
+          { "blue.userId": cond.userId, "blue.result": "winner" },
+          { "green.userId": cond.userId, "green.result": "winner" },
+        ],
+      });
+    } else if (cond.result === "lost") {
+      filter.$and.push({
+        $or: [
+          { "blue.userId": cond.userId, "blue.result": "looser" },
+          { "green.userId": cond.userId, "green.result": "looser" },
+        ],
+      });
+    }
+
+    // Always filter by userId in blue or green
+    filter.$and.push({
+      $or: [{ "blue.userId": cond.userId }, { "green.userId": cond.userId }],
+    });
+
+    // Apply keyword search if provided
+    if (cond.keyword) {
+      filter.$and.push({
+        $or: [
+          { matchId: { $regex: cond.keyword.toString(), $options: "i" } }, // Case-insensitive search
+          { roomCode: { $regex: cond.keyword.toString(), $options: "i" } },
+        ],
+      });
+    }
+
+    // Execute the query with pagination
+    const matches = await OnlineGame2.find(filter.$and.length ? filter : {})
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -968,6 +911,52 @@ export const fetchOnlineMatches = async (req, res) => {
   }
 };
 
+export const fetchOnlineMatches2 = async (req, res) => {
+  try {
+    const limit = 20;
+    const skip = (req.body.page - 1) * limit;
+    let cond = req.body.cond;
+
+    const filter = {};
+
+    if (cond.status && cond.status != "all") {
+      filter.status = cond.status;
+    }
+
+    if (cond.keyword) {
+      filter.$or = [
+        { matchId: { $regex: cond.keyword.toString(), $options: "i" } }, // Case-insensitive txnId search
+        { roomCode: { $regex: cond.keyword.toString(), $options: "i" } }, // Case-insensitive txnId search
+      ];
+    }
+
+    const matches = await OnlineGame2.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const _matches = await Promise.all(
+      matches.map(async (match) => {
+        match.hostData = await User.findOne({ _id: match.blue.userId });
+        match.joinerData = await User.findOne({ _id: match.green.userId });
+
+        return match;
+      })
+    );
+
+    return res.json({
+      success: true,
+      data: _matches,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
 export const fetchSpeedMatches = async (req, res) => {
   try {
     const limit = 20;
@@ -1121,6 +1110,26 @@ export const fetchMatch = async (req, res) => {
     if (cond && cond.reset) {
       if (mo.status == "open") {
       } else {
+        await User.updateOne(
+          { _id: mo.winner.userId },
+          {
+            $inc: {
+              "stats.totalPlayed": -1,
+              "stats.totalWon": -1,
+            },
+          }
+        );
+
+        await User.updateOne(
+          { _id: mo.looser.userId },
+          {
+            $inc: {
+              "stats.totalPlayed": -1,
+              "stats.totalLost": -1,
+            },
+          }
+        );
+
         const reset = await ManualMatch.updateOne(
           {
             $and: [
@@ -1141,22 +1150,59 @@ export const fetchMatch = async (req, res) => {
         );
       }
 
-      await Transaction.deleteMany({
+      //%%%%%%%%%%%%%%%%%%%%
+
+      // 1. Get all transactions for this match
+      const allTxns = await Transaction.find({
         matchId: cond._id,
         txnType: "credit",
-        txnCtg: "reward",
       });
+
+      // 2. Reverse balance updates based on transaction type/category
+      const bulkOps = [];
+
+      for (const tx of allTxns) {
+        let incObj = { cash: 0, reward: 0, bonus: 0 };
+
+        if (tx.txnType === "credit" && tx.txnCtg === "reward") {
+          // reverse reward credit -> subtract money
+          incObj.cash = -tx.cash;
+          incObj.reward = -tx.reward;
+          incObj.bonus = -tx.bonus;
+        }
+
+        if (tx.txnType === "credit" && tx.txnCtg === "referral") {
+          // reverse referral credit -> subtract money
+          incObj.cash = -tx.cash;
+          incObj.reward = -tx.reward;
+          incObj.bonus = -tx.bonus;
+        }
+
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: tx.userId },
+            update: {
+              $inc: {
+                "balance.cash": incObj.cash,
+                "balance.reward": incObj.reward,
+                "balance.bonus": incObj.bonus,
+                "stats.totalWinned": incObj.reward,
+              },
+            },
+          },
+        });
+      }
+
+      // 3. Execute all updates at once
+      if (bulkOps.length > 0) {
+        await User.bulkWrite(bulkOps);
+      }
+
+      //%%%%%%%%%%%%%%%%%%%%%
 
       await Transaction.deleteMany({
         matchId: cond._id,
         txnType: "credit",
-        txnCtg: "referral",
-      });
-
-      await Transaction.deleteMany({
-        matchId: cond._id,
-        txnType: "credit",
-        txnCtg: "bet",
       });
 
       await _log({
@@ -1246,6 +1292,78 @@ export const fetchOnlineMatch = async (req, res) => {
     }
 
     const match = await OnlineGame.findOne(cond).lean();
+    if (!match) {
+      return res.json({
+        success: false,
+        data: "invalid match page",
+      });
+    }
+
+    match.stat = {};
+
+    // Batch multiple queries using Promise.all() for better performance
+    const [hostData, joinerData, transactions, logs] = await Promise.all([
+      // Count total played matches
+      User.findOne({
+        _id: match.blue.userId,
+      }),
+      User.findOne({
+        _id: match.green.userId,
+      }),
+      Transaction.aggregate([
+        {
+          $match: {
+            $or: [{ matchId: match._id }],
+          },
+        },
+        {
+          $lookup: {
+            from: "users", // The collection to join with
+            localField: "userId", // The field in Transaction
+            foreignField: "_id", // The field in User
+            as: "user", // The output field (array of users)
+          },
+        },
+        {
+          $unwind: {
+            path: "$user",
+            preserveNullAndEmptyArrays: true, // If no user is found, still include the transaction
+          },
+        },
+      ]),
+      Log.find({ matchId: match._id }),
+    ]);
+
+    match.hostData = hostData;
+    match.joinerData = joinerData;
+    match.transactions = transactions;
+    match.logs = logs;
+
+    const _match = match;
+
+    return res.json({
+      success: true,
+      data: _match,
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchOnlineMatch2 = async (req, res) => {
+  try {
+    let cond = req.body.cond;
+    if (!cond) {
+      return res.json({
+        success: false,
+        data: "invalid user page",
+      });
+    }
+
+    const match = await OnlineGame2.findOne(cond).lean();
     if (!match) {
       return res.json({
         success: false,
@@ -1660,14 +1778,21 @@ export const updateResult = async (req, res) => {
         });
       } else {
         const m = await ManualMatch.findOne({ _id: match._id });
+        const bet = await Transaction.findOne({
+          matchId: m._id,
+          userId: m.winner.userId,
+          txnCtg: "bet",
+          txnType: "debit",
+        });
+
         const txnid = await newTxnId();
         const NewTxn = {
           txnId: txnid,
           userId: m.winner.userId,
           amount: m.prize,
-          cash: 0,
-          reward: m.prize,
-          bonus: 0,
+          cash: bet.cash,
+          reward: m.prize - m.entryFee + Number(bet.reward),
+          bonus: bet.bonus,
           remark: "Match Won",
           status: "completed",
           txnType: "credit",
@@ -1676,6 +1801,30 @@ export const updateResult = async (req, res) => {
         };
 
         await Transaction.create(NewTxn);
+        await User.updateOne(
+          { _id: m.winner.userId },
+          {
+            $inc: {
+              "balance.reward": NewTxn.reward,
+              "balance.cash": NewTxn.cash,
+              "balance.bonus": NewTxn.bonus,
+              "stats.totalWinned": NewTxn.reward,
+              "stats.totalPlayed": 1,
+              "stats.totalWon": 1,
+            },
+          }
+        );
+
+        await User.updateOne(
+          { _id: m.looser.userId },
+          {
+            $inc: {
+              "stats.totalPlayed": 1,
+              "stats.totalLost": 1,
+            },
+          }
+        );
+
         const w = await User.findOne({ _id: m.winner.userId });
 
         await _log({
@@ -1995,8 +2144,17 @@ export const updateWithdrawStatus = async (req, res) => {
       } // Update the fullName field
     );
 
+
     const _withdraw = await Transaction.findOne({ _id: withdraw._id }).lean();
     const u = await User.findOne({ _id: _withdraw.userId });
+
+    
+    if (data.status == "cancelled"){
+         await User.updateOne(
+                { _id: u._id },
+                { $inc: { "balance.reward": _withdraw.amount } }
+              );
+    } 
     _withdraw.user = u;
     _withdraw.balance = await ubalance(u);
     _log({
@@ -2114,6 +2272,13 @@ export const updateDepositStatus = async (req, res) => {
     const u = await User.findOne({ _id: _deposit.userId });
     _deposit.user = u;
 
+     if (data.status == "completed"){
+         await User.updateOne(
+                { _id: u._id },
+                { $inc: { "balance.cash": _deposit.amount } }
+              );
+    } 
+
     _log({
       message:
         req.admin.emailId +
@@ -2182,6 +2347,10 @@ export const sendStat = async () => {
   });
 
   stat.onlineMatch = await OnlineGame.countDocuments({
+    status: "running",
+  });
+
+  stat.onlineMatch2 = await OnlineGame2.countDocuments({
     status: "running",
   });
 
@@ -2280,7 +2449,7 @@ export const fetchAdmins = async (req, res) => {
 };
 
 export function maskMobile(text) {
-  return text;
+  // return text;
   return text.replace(/\b\d{5}(\d{5})\b/g, "*****$1");
 }
 export const fetchChatList = async () => {
@@ -2317,9 +2486,22 @@ export const fetchChatList = async () => {
 
     const _messages = await Promise.all(
       messages.map(async (msg) => {
-        msg.user = await User.findOne({
-          _id: msg.isAdmin ? msg.receiverId : msg.senderId,
-        });
+        msg.user = await User.findOne(
+          {
+            _id: msg.isAdmin ? msg.receiverId : msg.senderId,
+          },
+          {
+            mobileNumber: 0,
+            kyc: 0,
+            kycData: 0,
+            kycApiResponse: 0,
+            deviceId: 0,
+            balance: 0,
+            stats: 0,
+            _su: 0,
+            _y: 0,
+          }
+        );
         msg.count = await Message.countDocuments({
           isAdmin: false,
           isRead: false,
@@ -2369,9 +2551,22 @@ export const _fetchChatList = async (req, res) => {
     ]);
     const _messages = await Promise.all(
       messages.map(async (msg) => {
-        msg.user = await User.findOne({
-          _id: msg.isAdmin ? msg.receiverId : msg.senderId,
-        });
+        msg.user = await User.findOne(
+          {
+            _id: msg.isAdmin ? msg.receiverId : msg.senderId,
+          },
+          {
+            mobileNumber: 0,
+            kyc: 0,
+            kycData: 0,
+            kycApiResponse: 0,
+            deviceId: 0,
+            balance: 0,
+            stats: 0,
+            _su: 0,
+            _y: 0,
+          }
+        );
         msg.count = await Message.countDocuments({
           isAdmin: false,
           isRead: false,
@@ -2628,7 +2823,7 @@ export const fetchGamesList = async (req, res) => {
     const limit = 20;
     const skip = (req.body.page - 1) * limit;
 
-    const games = await Game.find().skip(skip).limit(4);
+    const games = await Game.find().skip(skip).limit(10);
 
     return res.json({
       success: true,
@@ -2663,6 +2858,9 @@ export const addTxn = async (req, res) => {
       txnId: txnid,
       userId: req.body.cond._id,
       amount: amount,
+      cash: 0,
+      bonus: 0,
+      reward: 0,
       txnType: req.body.cond.txnType,
       remark: req.body.cond.txnType + "ed by Admin ",
       status: "completed",
@@ -2681,6 +2879,18 @@ export const addTxn = async (req, res) => {
     }
 
     await Transaction.create(newtxn);
+
+    await User.updateOne(
+      { _id: req.body.cond._id },
+      {
+        $inc: {
+          "balance.reward": newtxn.reward,
+          "balance.cash": newtxn.cash,
+          "balance.bonus": newtxn.bonus,
+        },
+      }
+    );
+
     const w = await User.findOne({
       _id: req.body.cond._id,
     });

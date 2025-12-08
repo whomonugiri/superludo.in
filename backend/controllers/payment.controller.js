@@ -3,6 +3,7 @@ import { Transaction } from "../models/transaction.models.js";
 import { balance, newTxnId } from "./user.controller.js";
 import { _config } from "./config.controller.js";
 import { isAnyMatchRunningOrOpen } from "./match.controller.js";
+import User from "../models/user.model.js";
 function validOrderId(str) {
   const pattern = /^[a-zA-Z0-9]+$/; // Matches only alphanumeric characters without spaces
   return pattern.test(str);
@@ -307,6 +308,11 @@ export const submitWithdrawReq = async (req, res) => {
     const txn = await Transaction.create(newtxn);
 
     if (txn) {
+        await User.updateOne(
+                { _id: req.user._id },
+                { $inc: { "balance.reward": -newtxn.amount } }
+              );
+
       return res.json({
         success: true,
         message: "withdraw_submit_msg",
@@ -386,6 +392,13 @@ export const paymentQrStatus = async (req, res) => {
     data.txnid = req.body.txnid;
 
     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
+    if (txn.status == "completed") {
+      return res.json({
+        success: true,
+        data: txn,
+        message: "transaction status refreshed",
+      });
+    }
     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
 
     const url = "https://meraotp.in/api/getPaymentStatus";
@@ -404,6 +417,13 @@ export const paymentQrStatus = async (req, res) => {
     ////console.log(tx);
     const pr = {};
     if (tx.STATUS == "TXN_SUCCESS") {
+      if (txn.status != "completed") {
+        await User.updateOne(
+          { _id: req.user._id },
+          { $inc: { "balance.cash": tx.TXNAMOUNT } }
+        );
+      }
+
       const txnst = await Transaction.updateOne(
         { userId: req.userId, txnId: data.txnid, status: "pending" }, // Filter by user ID
         {

@@ -3,6 +3,7 @@ import { Config } from "../models/config.model.js";
 import DEVELOPER from "../models/developer.model.js";
 import { ManualMatch } from "../models/manualmatch.model.js";
 import { OnlineGame } from "../models/onlinegame.js";
+import { OnlineGame2 } from "../models/onlinegame2.js";
 import OTP from "../models/otp.model.js";
 import { QuickLudo } from "../models/quickludo.js";
 import { SpeedLudo } from "../models/speedludo.js";
@@ -191,6 +192,22 @@ export const fetchReports = async (req, res) => {
       },
     ]);
 
+    const betmoney5 = await OnlineGame2.aggregate([
+      {
+        $match: {
+          status: "completed",
+          createdAt: zone, // Make sure `zone` is a valid date filter
+        },
+      },
+      {
+        $group: {
+          _id: null, // Group all matching documents together
+          totalAmount: { $sum: "$entryFee" }, // Sum the "amount" field
+          totalPrize: { $sum: "$prize" }, // Sum the "amount" field
+        },
+      },
+    ]);
+
     let bmoney = betmoney.length > 0 ? betmoney[0].totalAmount : 0;
     let pmoney = betmoney.length > 0 ? betmoney[0].totalPrize : 0;
 
@@ -214,6 +231,11 @@ export const fetchReports = async (req, res) => {
 
     data.QuickReward = betmoney4.length > 0 ? betmoney4[0].totalPrize : 0;
 
+    data.TokenBet = betmoney5.length > 0 ? betmoney5[0].totalAmount : 0;
+    data.TokenBet *= 2;
+
+    data.TokenReward = betmoney5.length > 0 ? betmoney5[0].totalPrize : 0;
+
     // data.SpeedReward += betmoney3.length > 0 ? betmoney3[0].totalPrize2 : 0;
 
     // Extract the total sum from the result
@@ -225,6 +247,9 @@ export const fetchReports = async (req, res) => {
 
     data.Total_Played_Bet += data.QuickBet;
     data.Total_Reward_Earned += data.QuickReward;
+
+    data.Total_Played_Bet += data.TokenBet;
+    data.Total_Reward_Earned += data.TokenReward;
 
     data.Total_Conflicted_Matches = await ManualMatch.countDocuments({
       conflict: true,
@@ -342,102 +367,28 @@ export const fetchReports = async (req, res) => {
       data.Total_Referral_Given;
 
     data.Total_Admin_Earnings = data.Total_Admin_Earnings.toFixed(2);
-    const account = await Transaction.aggregate([
+    const result = await User.aggregate([
       {
         $group: {
           _id: null,
-          cashcredit: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ["$txnType", "credit"] },
-                    { $eq: ["$status", "completed"] },
-                  ],
-                },
-                "$cash", // If both conditions are true, return the amount
-                0, // Otherwise, return 0
-              ],
-            },
-          },
-          cashdebit: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ["$txnType", "debit"] },
-                    { $eq: ["$status", "completed"] },
-                  ],
-                },
-                "$cash", // If both conditions are true, return the amount
-                0, // Otherwise, return 0
-              ],
-            },
-          },
-          bonuscredit: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ["$txnType", "credit"] },
-                    { $eq: ["$status", "completed"] },
-                  ],
-                },
-                "$bonus", // If both conditions are true, return the amount
-                0, // Otherwise, return 0
-              ],
-            },
-          },
-          bonusdebit: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ["$txnType", "debit"] },
-                    { $eq: ["$status", "completed"] },
-                  ],
-                },
-                "$bonus", // If both conditions are true, return the amount
-                0, // Otherwise, return 0
-              ],
-            },
-          },
-          rewardcredit: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ["$txnType", "credit"] },
-                    { $eq: ["$status", "completed"] },
-                  ],
-                },
-                "$reward", // If both conditions are true, return the amount
-                0, // Otherwise, return 0
-              ],
-            },
-          },
-          rewarddebit: {
-            $sum: {
-              $cond: [
-                {
-                  $and: [
-                    { $eq: ["$txnType", "debit"] },
-                    { $ne: ["$status", "cancelled"] },
-                  ],
-                },
-                "$reward", // If both conditions are true, return the amount
-                0, // Otherwise, return 0
-              ],
-            },
-          },
+          cash: { $sum: "$balance.cash" },
+          reward: { $sum: "$balance.reward" },
+          bonus: { $sum: "$balance.bonus" },
         },
       },
       {
         $project: {
           _id: 0,
-          cash: { $subtract: ["$cashcredit", "$cashdebit"] },
-          reward: { $subtract: ["$rewardcredit", "$rewarddebit"] },
-          bonus: { $subtract: ["$bonuscredit", "$bonusdebit"] },
+          cash: { $ifNull: ["$cash", 0] },
+          reward: { $ifNull: ["$reward", 0] },
+          bonus: { $ifNull: ["$bonus", 0] },
+        },
+      },
+      {
+        $addFields: {
+          totalBalance: {
+            $add: ["$cash", "$reward", "$bonus"],
+          },
         },
       },
     ]);
@@ -448,19 +399,17 @@ export const fetchReports = async (req, res) => {
       bonus: 0,
       balance: 0,
     };
-    if (account.length > 0) {
-      money.cash = account[0].cash.toFixed(2) || 0;
-      money.reward = account[0].reward.toFixed(2) || 0;
-      money.bonus = account[0].bonus.toFixed(2) || 0;
-      money.cash = Number(money.cash);
-      money.reward = Number(money.reward);
-      money.bonus = Number(money.bonus);
 
-      money.balance =
-        Number(money.cash) + Number(money.reward) + Number(money.bonus);
+    if (result.length > 0) {
+      const { cash, reward, bonus, totalBalance } = result[0];
+
+      money.cash = Number(cash.toFixed(2));
+      money.reward = Number(reward.toFixed(2));
+      money.bonus = Number(bonus.toFixed(2));
+      money.balance = Number(totalBalance.toFixed(2));
     }
 
-    // const d = await DEVELOPER.findOne({}, "otpCount");
+    const d = await DEVELOPER.findOne({}, "otpCount");
 
     data.otpCount = 0;
 

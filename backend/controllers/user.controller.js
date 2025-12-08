@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import otpG from "otp-generator";
 import axios from "axios";
 import OTP from "../models/otp.model.js";
@@ -16,6 +17,7 @@ import { OnlineGame } from "../models/onlinegame.js";
 import { SpeedLudo } from "../models/speedludo.js";
 import DEVELOPER from "../models/developer.model.js";
 import { QuickLudo } from "../models/quickludo.js";
+import { OnlineGame2 } from "../models/onlinegame2.js";
 const otpOptions = {
   lowerCaseAlphabets: false,
   upperCaseAlphabets: false,
@@ -250,9 +252,9 @@ export const balance = async (req) => {
   return money;
 };
 
-export const ubalance = async (user) => {
+export const oldbalance = async (req) => {
   const account = await Transaction.aggregate([
-    { $match: { userId: user._id } },
+    { $match: { userId: req.user._id } },
     {
       $group: {
         _id: "$userId",
@@ -387,6 +389,41 @@ export const ubalance = async (user) => {
     money.balance =
       Number(money.cash) + Number(money.reward) + Number(money.bonus);
   }
+
+  return money;
+};
+// export const balance = async (req) => {
+//   // Use a sensible default object to ensure structure even if user is not found
+//   const emptyBalance = { cash: 0, reward: 0, bonus: 0 };
+
+//   // 1. Fetch user data
+//   const user = await User.findById(req.user._id).lean();
+
+//   // 2. Determine the user's current balance object, defaulting to emptyBalance
+//   const userBalance = user?.balance || emptyBalance;
+
+//   // 3. Extract the parts, ensuring they are always Numbers (using a default of 0)
+//   const cash = Number(userBalance.cash) || 0;
+//   const reward = Number(userBalance.reward) || 0;
+//   const bonus = Number(userBalance.bonus) || 0;
+
+//   // 4. Calculate the total balance
+//   const totalBalance = cash + reward + bonus;
+
+//   // 5. Return the structured object
+//   return {
+//     // Keep cash, reward, and bonus as numbers, formatted to 2 decimal places
+//     // (This step is optional, but matches the intent of your original toFixed(2))
+//     cash: Number(cash.toFixed(2)),
+//     reward: Number(reward.toFixed(2)),
+//     bonus: Number(bonus.toFixed(2)),
+//     // Return the calculated total balance
+//     balance: Number(totalBalance.toFixed(2)),
+//   };
+// };
+
+export const ubalance = async (user) => {
+  const money = await balance({ user: user });
 
   return money;
 };
@@ -721,6 +758,11 @@ export const verifyOtp = async (req, res) => {
           const token = await jwt.sign(tokenData, process.env.JWT_SECRET_KEY);
 
           if (check) {
+            await User.updateOne(
+              { referralCode: req.body.referralCode },
+              { $inc: { "stats.totalReferred": 1 } }
+            );
+
             const config = await _config();
             if (config.JOINING_BONUS > 0) {
               const htxnid = await newTxnId();
@@ -738,6 +780,10 @@ export const verifyOtp = async (req, res) => {
               };
 
               const h = await Transaction.create(hostNewTxn);
+              await User.updateOne(
+                { _id: check._id },
+                { $inc: { "balance.bonus": config.JOINING_BONUS } }
+              );
             }
 
             const money = await balance({ user: check });
@@ -1025,23 +1071,8 @@ export const logout = async (req, res) => {
 };
 
 export const newTxnId = async () => {
-  try {
-    const lastid = await Transaction.findOne({ txnId: { $regex: /^txn\d+$/ } })
-      .sort({ txnId: -1 }) // Sort in descending order
-      .exec();
-
-    let nextNumber = Date.now();
-    if (lastid) {
-      const match = lastid.txnId.match(/^txn(\d+)$/);
-      if (match) {
-        nextNumber = parseInt(match[1], 10) + 1;
-      }
-    }
-
-    return "txn" + nextNumber;
-  } catch (error) {
-    ////console.log("txnid", error);
-  }
+  const random = crypto.randomBytes(6).toString("hex").toUpperCase(); // 12 chars
+  return `TXN${Date.now()}${random}`;
 };
 function validAmount(value) {
   value = parseInt(value);
@@ -1126,6 +1157,14 @@ export const getPaymentStatus = async (req, res) => {
 
     data.txnid = req.body.cond.txnId;
     const txn = await Transaction.findOne({ txnId: data.txnid }).lean();
+
+    if (txn.status == "completed") {
+      return res.json({
+        success: true,
+        data: txn,
+        message: "transaction status refreshed",
+      });
+    }
     data.merchantid = txn.MID || config.PAYTM_BUSINESS_MID;
 
     const url = "https://meraotp.in/api/getPaymentStatus";
@@ -1144,6 +1183,12 @@ export const getPaymentStatus = async (req, res) => {
     //console.log(tx, req.body);
     const pr = {};
     if (tx.STATUS == "TXN_SUCCESS") {
+      if (txn.status != "completed") {
+        await User.updateOne(
+          { _id: req.user._id },
+          { $inc: { "balance.cash": tx.TXNAMOUNT } }
+        );
+      }
       const txnst = await Transaction.updateOne(
         { txnId: data.txnid }, // Filter by user ID
         {
@@ -1201,6 +1246,13 @@ export const getPaymentStatus2 = async (txnId) => {
 
     const pr = {};
     if (tx.STATUS == "TXN_SUCCESS") {
+      if (txn.status != "completed") {
+        await User.updateOne(
+          { _id: req.user._id },
+          { $inc: { "balance.cash": tx.TXNAMOUNT } }
+        );
+      }
+
       const txnst = await Transaction.updateOne(
         { txnId: data.txnid }, // Filter by user ID
         {
@@ -1365,211 +1417,17 @@ export const fetchLeaderboard = async (req, res) => {
 
 export const fetchMe = async (req, res) => {
   try {
-    const totalEarnings = await Transaction.aggregate([
-      // Filter for credit transactions
-      {
-        $match: {
-          txnType: "credit", // Ensure the "type" field has "credit" for credit transactions
-          txnCtg: "reward",
-          status: "completed",
-          userId: req.user._id,
-        },
-      },
-      // Group by userId and count the number of credit transactions
-      {
-        $group: {
-          _id: "$userId",
-          totalReward: { $sum: "$reward" },
-        },
-      },
-      // Join with the User collection to get user details
-
-      // Unwind the user array (since $lookup returns an array)
-
-      // Project the required fields
-      {
-        $project: {
-          totalReward: 1,
-        },
-      },
-    ]);
-
-    const totalRefEarn = await Transaction.aggregate([
-      // Filter for credit transactions
-      {
-        $match: {
-          txnType: "credit", // Ensure the "type" field has "credit" for credit transactions
-          txnCtg: "referral",
-          status: "completed",
-          userId: req.user._id,
-        },
-      },
-      // Group by userId and count the number of credit transactions
-      {
-        $group: {
-          _id: "$userId",
-          totalReward: { $sum: "$bonus" },
-        },
-      },
-      // Join with the User collection to get user details
-
-      // Unwind the user array (since $lookup returns an array)
-
-      // Project the required fields
-      {
-        $project: {
-          totalReward: 1,
-        },
-      },
-    ]);
-
-    const totalMatch = await ManualMatch.find({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "host.userId": req.user._id }, // Condition 1: Host userId matches
-            { "joiner.userId": req.user._id },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const totalMatch2 = await OnlineGame.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const totalMatch3 = await SpeedLudo.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const wonMatch = await ManualMatch.find({
-      $and: [
-        { status: "completed", "winner.userId": req.user._id }, // Exclude the current matchId
-        {
-          $or: [
-            { "host.userId": req.user._id }, // Condition 1: Host userId matches
-            { "joiner.userId": req.user._id },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const wonMatch2 = await OnlineGame.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id, "blue.result": "winner" }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id, "green.result": "winner" },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const wonMatch3 = await SpeedLudo.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id, "blue.result": "winner" }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id, "green.result": "winner" },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const wonMatch4 = await QuickLudo.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id, "blue.result": "winner" }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id, "green.result": "winner" },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const lostMatch = await ManualMatch.find({
-      $and: [
-        { status: "completed", "looser.userId": req.user._id }, // Exclude the current matchId
-        {
-          $or: [
-            { "host.userId": req.user._id }, // Condition 1: Host userId matches
-            { "joiner.userId": req.user._id },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const lostMatch2 = await OnlineGame.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id, "blue.result": "looser" }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id, "green.winner": "looser" },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
-    const lostMatch3 = await SpeedLudo.countDocuments({
-      $and: [
-        { status: "completed" }, // Exclude the current matchId
-        {
-          $or: [
-            { "blue.userId": req.user._id, "blue.result": "looser" }, // Condition 1: Host userId matches
-            { "green.userId": req.user._id, "green.winner": "looser" },
-            // Condition 2: Joiner userId matches
-          ],
-        },
-      ],
-    }).sort({ createdAt: -1 });
-
     const stat = {};
-    stat.totalEarnings =
-      totalEarnings.length > 0 ? totalEarnings[0].totalReward : 0;
-    stat.playedMatch =
-      totalMatch.length + Number(totalMatch2) + Number(totalMatch3);
-    stat.wonMatch =
-      wonMatch.length +
-      Number(wonMatch2) +
-      Number(wonMatch3) +
-      Number(wonMatch4);
-    stat.lostMatch = lostMatch.length + Number(lostMatch2) + Number(lostMatch3);
-    stat.refEarnings =
-      totalRefEarn.length > 0 ? totalRefEarn[0].totalReward : 0;
+    stat.totalEarnings = req.user.stats.totalWinned;
 
-    stat.referredUsers = await User.countDocuments({
-      referBy: req.user.referralCode,
-    });
+    stat.playedMatch = req.user.stats.totalPlayed;
+
+    stat.wonMatch = req.user.stats.totalWon;
+    stat.lostMatch = 0;
+
+    stat.refEarnings = req.user.stats.totalReferralEarnings;
+
+    stat.referredUsers = req.user.stats.totalReferred;
     return res.json({
       success: true,
       stat: stat,

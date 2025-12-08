@@ -75,4 +75,5 @@ const matchSchema = new mongoose.Schema(
     timestamps: true, // Automatically creates createdAt and updatedAt fields
   }
 );
+
 export const QuickLudo = mongoose.model("QuickLudo", matchSchema);

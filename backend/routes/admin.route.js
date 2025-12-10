@@ -2,6 +2,7 @@ import expres from "express";
 import {
   _fetchChatList,
   addCommissionParam,
+  addTournament,
   addTxn,
   autologin,
   deleteParam,
@@ -111,4 +112,6 @@ router.route("/fetchGameJson").post(auth, fetchGameJson);
 router.route("/deleteAdmin").post(auth, deleteAdmin);
 router.route("/deleteParam").post(auth, deleteParam);
 router.route("/fetchUserList").post(auth, _fetchChatList);
+router.route("/addNewTournament").post(auth, addTournament);
+
 export default router;

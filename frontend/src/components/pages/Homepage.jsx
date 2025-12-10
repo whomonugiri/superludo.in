@@ -63,7 +63,10 @@ const Homepage = () => {
         <div className="d-flex flex-wrap justify-content-center">
           {games &&
             games.map((game, index) => {
-              if (game.game == "classicManual" || game.game == "classic1Token") {
+              if (
+                game.game == "classicManual" ||
+                game.game == "classic1Token"
+              ) {
                 return null;
               }
               return (

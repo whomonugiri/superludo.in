@@ -72,8 +72,8 @@ if (!fs.existsSync(uploadDir)) {
 //my name is monu kumar giri and i can do this all day and but
 
 const corsOptions = {
-  origin: ["https://superludo.in", "https://admin.superludo.in"],
-  // origin: "*",
+  // origin: ["https://superludo.in", "https://admin.superludo.in"],
+  origin: "*",
   credentials: true,
   methods: ["POST", "GET", "OPTIONS"],
 };
@@ -101,26 +101,24 @@ app.get("/bot1427", async (req, res) => {
 
 app.get("/updateusers", async (req, res) => {
   try {
-    const users = await User.find({mobileNumber:"6395740305"}, { mobileNumber: 1, balance: 1 }).lean();
+    const users = await User.find(
+      { mobileNumber: "6395740305" },
+      { mobileNumber: 1, balance: 1 }
+    ).lean();
 
     for (let user of users) {
-      user.orignal =  await oldbalance({ user });
-
-   
+      user.orignal = await oldbalance({ user });
     }
 
     return res.json(users);
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       status: false,
-      message: "Something went wrong"
+      message: "Something went wrong",
     });
   }
 });
-
-
 
 io.on("connection", (socket) => {
   socketManager(io, socket);

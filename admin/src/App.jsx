@@ -39,6 +39,7 @@ import { ManageSpeedMatches } from "./assets/components/pages/ManageSpeedMatches
 import { OpenSpeedMatch } from "./assets/components/pages/OpenSpeedMatch";
 import { ManageQuickMatches } from "./assets/components/pages/ManageQuickMatches";
 import { OpenQuickMatch } from "./assets/components/pages/OpenQuickMatch";
+import { ManageTournaments } from "./assets/components/pages/ManageTournaments";
 export const App = () => {
   const { isAuth } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
@@ -184,6 +185,15 @@ export const App = () => {
             element={
               <ProtectedRoute isAuth={isAuth}>
                 <ManageAdmins />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="manage-tournaments"
+            element={
+              <ProtectedRoute isAuth={isAuth}>
+                <ManageTournaments />
               </ProtectedRoute>
             }
           />

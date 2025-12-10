@@ -20,6 +20,7 @@ import { Leaderboard } from "./components/pages/Leaderboard";
 import { Profile } from "./components/pages/Profile";
 import { ClassicOnline } from "./components/pages/ClassicOnline";
 import OnlineClassic from "./onlineclassic";
+import TournaGame from "./tournament";
 import SpeedLudo from "./speedludo";
 import QuickLudo from "./quickludo";
 
@@ -30,6 +31,8 @@ import { AddMoney2 } from "./components/pages/AddMoney2";
 import { Terms } from "./components/pages/Terms";
 import { QuickLudoP } from "./components/pages/QuickLudoP";
 import { SpeedLudoP2 } from "./components/pages/SpeedLudoP2";
+import { Tournament } from "./components/pages/Tournament";
+import { TMatch } from "./components/pages/TMatch";
 
 export const App = () => {
   const { loading } = useSelector((store) => store.auth);
@@ -62,11 +65,13 @@ export const App = () => {
             <Route path="speedludo2" element={<SpeedLudoP2 />} />
 
             <Route path="quickludo" element={<QuickLudoP />} />
+            <Route path="tournament" element={<Tournament />} />
 
             <Route path="match" element={<Match />} />
             {/* <Route path="matches" element={<Matches />} /> */}
             <Route path="withdraw" element={<Withdraw />} />
             <Route path="refer" element={<Refer />} />
+            <Route path="/open-tournament/:gameUid" element={<TMatch />} />
 
             <Route path="leaderboard" element={<Leaderboard />} />
             <Route path="profile" element={<Profile />} />
@@ -78,6 +83,7 @@ export const App = () => {
           />
           <Route path="/speed-ludo-game/:gameUid" element={<SpeedLudo />} />
           <Route path="/quick-ludo-game/:gameUid" element={<QuickLudo />} />
+          <Route path="/play-tournament/:gameUid" element={<TournaGame />} />
         </Routes>
       )}
     </>

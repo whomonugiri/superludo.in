@@ -30,6 +30,8 @@ import FakeOnline2 from "../models/fakeonline2.model.js";
 import { QuickLudo } from "../models/quickludo.js";
 import FakeQuick from "../models/fakequick.model.js";
 import { Message } from "../models/message.model.js";
+import { Tournament } from "../models/tournaments.js";
+import { TMatch } from "../models/tmatch.js";
 
 export const getPrize = async (amount, type = null) => {
   const config = await _config();
@@ -101,8 +103,7 @@ export async function bot1427() {
   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
   const sDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-
-  await Message.deleteMany({completedAt:{$lt:sDaysAgo}});
+  await Message.deleteMany({ completedAt: { $lt: sDaysAgo } });
   const filter = {
     status: { $in: ["completed", "cancelled"] },
     completedAt: { $lt: twoDaysAgo },
@@ -114,7 +115,7 @@ export async function bot1427() {
   await SpeedLudo.deleteMany(filter);
   await QuickLudo.deleteMany(filter);
 
-  console.log("but is worked")
+  console.log("but is worked");
 
   const report = {
     totalMatches: 0,
@@ -182,7 +183,7 @@ export async function bot1427() {
 export const createMatch = async (req, res) => {
   try {
     const userBalance = await balance(req);
-    
+
     const amount = req.body.amount;
     const isAMR = await isAnyMatchRunning(req);
     if (isAMR) {
@@ -5839,3 +5840,284 @@ export const cancelQuickLudo = async (req, res) => {
 //     });
 //   }
 // };
+
+export const fetchTournaments = async (req, res) => {
+  try {
+    const matches = {};
+
+    matches.omatch = await Tournament.find({ status: "running" })
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
+
+    for (let match of matches.omatch) {
+      // 🔹 Check if user is playing in this tournament
+      const playing = await TMatch.findOne({
+        tournamentId: match._id,
+        $or: [{ "blue.userId": req.user._id }],
+        status: "running",
+      });
+
+      match.isUserPlaying = !!playing; // true / false
+
+      // 🔹 Count total joined players in this tournament
+      const joinedCount = await TMatch.aggregate([
+        {
+          $match: {
+            tournamentId: String(match._id),
+            status: { $in: ["running", "completed"] },
+          },
+        },
+        {
+          $group: {
+            _id: "$blue.userId",
+          },
+        },
+        {
+          $count: "totalJoined",
+        },
+      ]);
+
+      match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
+    }
+
+    const money = await balance(req);
+    return res.json({
+      success: true,
+      matches: matches,
+      balance: money,
+    });
+  } catch (error) {
+    ////console.log("createMatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchTournament = async (req, res) => {
+  try {
+    const match = await Tournament.findOne({
+      _id: req.body.tournamentId,
+      status: "running",
+    })
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
+
+    // 🔹 Check if user is playing in this tournament
+    const playing = await TMatch.findOne({
+      tournamentId: match._id,
+      $or: [{ "blue.userId": req.user._id }],
+      status: "running",
+    });
+
+    match.isUserPlaying = !!playing; // true / false
+
+    match.activeMatch = playing;
+
+    // 🔹 Count total joined players in this tournament
+    const joinedCount = await TMatch.aggregate([
+      {
+        $match: {
+          tournamentId: String(match._id),
+          status: { $in: ["running", "completed"] },
+        },
+      },
+      {
+        $group: {
+          _id: "$blue.userId",
+        },
+      },
+      {
+        $count: "totalJoined",
+      },
+    ]);
+
+    match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
+
+    return res.json({
+      success: true,
+      match: match,
+    });
+  } catch (error) {
+    ////console.log("fetchmatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const joinTournament = async (req, res) => {
+  try {
+    const userBalance = await balance(req);
+    const tournamentId = req.body.tournamentId;
+
+    const isAMR = await isAnyMatchRunning(req);
+    if (isAMR) {
+      return res.json({
+        success: false,
+        message: "already_in_match",
+      });
+    }
+
+    const game = await Tournament.findOne({ _id: tournamentId });
+
+    if (!game) {
+      return res.json({
+        success: false,
+        message: "Tournament Not Found",
+      });
+    }
+
+    if (game.status != "running") {
+      return res.json({
+        success: false,
+        message: "Tournament is closed",
+      });
+    }
+
+    if (game.entryFee > userBalance.balance) {
+      return res.json({
+        success: false,
+        message: "less_balance_msg",
+      });
+    }
+
+    const openmatch = await TMatch.findOne({
+      status: "running",
+      "blue.userId": req.user._id,
+    });
+
+    if (openmatch) {
+      return res.json({
+        success: false,
+        message: "you are already playing a tournament",
+      });
+    } else {
+      await QuickLudo.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [{ "blue.userId": req.user._id }],
+          },
+        ],
+      });
+
+      await OnlineGame.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [{ "blue.userId": req.user._id }],
+          },
+        ],
+      });
+
+      await OnlineGame2.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [{ "blue.userId": req.user._id }],
+          },
+        ],
+      });
+
+      await SpeedLudo.deleteMany({
+        $and: [
+          { status: "waiting" },
+          {
+            $or: [{ "blue.userId": req.user._id }],
+          },
+        ],
+      });
+
+      const newMatch = {
+        tournamentId: game._id,
+        type: "tmatch",
+        moves: game.moves,
+        blue: {
+          userId: req.user._id,
+        },
+        entryFee: game.entryFee,
+        status: "running",
+        roomCode: generateUniqueRoomCode(),
+      };
+      const m = await TMatch.create(newMatch);
+
+      const host = await User.findOne({ _id: m.blue.userId });
+      const hostBalance = await ubalance(host);
+
+      const hostTxnExists = await Transaction.exists({
+        userId: host._id,
+        matchId: m._id,
+        txnCtg: "bet",
+        txnType: "debit",
+        status: "completed",
+      });
+      if (!hostTxnExists) {
+        let neededMoneyHost = m.entryFee;
+        const newTxnhost = {
+          txnId: await newTxnId(),
+          userId: host._id,
+          amount: m.entryFee,
+          cash: 0,
+          reward: 0,
+          bonus: 0,
+          remark: "League Joined",
+          status: "completed",
+          txnType: "debit",
+          txnCtg: "bet",
+          matchId: m._id,
+          tournamentId: game._id,
+        };
+        if (neededMoneyHost > 0) {
+          newTxnhost.cash = Math.min(neededMoneyHost, hostBalance.cash);
+          neededMoneyHost -= newTxnhost.cash;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.bonus = Math.min(neededMoneyHost, hostBalance.bonus);
+          neededMoneyHost -= newTxnhost.bonus;
+        }
+        if (neededMoneyHost > 0) {
+          newTxnhost.reward = Math.min(neededMoneyHost, hostBalance.reward);
+          neededMoneyHost -= newTxnhost.reward;
+        }
+        await Transaction.create(newTxnhost);
+
+        await User.updateOne(
+          { _id: host._id },
+          {
+            $inc: {
+              "balance.reward": -newTxnhost.reward,
+              "balance.cash": -newTxnhost.cash,
+              "balance.bonus": -newTxnhost.bonus,
+            },
+          }
+        );
+      }
+
+      await _log({
+        matchId: m._id,
+        message:
+          req.user.fullName +
+          "(" +
+          req.user.mobileNumber +
+          ") joined tournament",
+      });
+      return res.json({
+        success: true,
+        data: m,
+      });
+    }
+  } catch (error) {
+    ////console.log("createMatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};

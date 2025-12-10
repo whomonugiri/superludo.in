@@ -26,6 +26,7 @@ import { OnlineGame } from "../../models/onlinegame.js";
 import { SpeedLudo } from "../../models/speedludo.js";
 import { QuickLudo } from "../../models/quickludo.js";
 import { OnlineGame2 } from "../../models/onlinegame2.js";
+import Tournament from "../../models/tournaments.js";
 export const _log = async (log) => {
   await Log.create(log);
 };
@@ -2144,17 +2145,15 @@ export const updateWithdrawStatus = async (req, res) => {
       } // Update the fullName field
     );
 
-
     const _withdraw = await Transaction.findOne({ _id: withdraw._id }).lean();
     const u = await User.findOne({ _id: _withdraw.userId });
 
-    
-    if (data.status == "cancelled"){
-         await User.updateOne(
-                { _id: u._id },
-                { $inc: { "balance.reward": _withdraw.amount } }
-              );
-    } 
+    if (data.status == "cancelled") {
+      await User.updateOne(
+        { _id: u._id },
+        { $inc: { "balance.reward": _withdraw.amount } }
+      );
+    }
     _withdraw.user = u;
     _withdraw.balance = await ubalance(u);
     _log({
@@ -2272,12 +2271,12 @@ export const updateDepositStatus = async (req, res) => {
     const u = await User.findOne({ _id: _deposit.userId });
     _deposit.user = u;
 
-     if (data.status == "completed"){
-         await User.updateOne(
-                { _id: u._id },
-                { $inc: { "balance.cash": _deposit.amount } }
-              );
-    } 
+    if (data.status == "completed") {
+      await User.updateOne(
+        { _id: u._id },
+        { $inc: { "balance.cash": _deposit.amount } }
+      );
+    }
 
     _log({
       message:
@@ -3076,6 +3075,99 @@ export const fetchGameJson = async (req, res) => {
         message: "api is not responding or invalid game id",
       });
     }
+  } catch (error) {
+    ////console.log("paymentQr", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+function validateScoring(scoring) {
+  if (!Array.isArray(scoring) || scoring.length === 0) return false;
+
+  for (let s of scoring) {
+    if (
+      !s.fromRank ||
+      !s.toRank ||
+      !s.reward ||
+      isNaN(s.fromRank) ||
+      isNaN(s.toRank) ||
+      isNaN(s.reward)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export const addTournament = async (req, res) => {
+  try {
+    const {
+      name,
+      moves,
+      firstPrize,
+      prizePool,
+      assuredWinners,
+      totalAllowedEntries,
+      totalAllowedEntriesPerUser,
+      status,
+      scoring,
+    } = req.body;
+
+    // Check required fields
+    if (
+      !name ||
+      !moves ||
+      !firstPrize ||
+      !prizePool ||
+      !assuredWinners ||
+      !totalAllowedEntries ||
+      !totalAllowedEntriesPerUser ||
+      !status ||
+      !scoring
+    ) {
+      return res.status(400).json({ msg: "Missing required fields" });
+    }
+
+    // Validate scoring array
+    if (!validateScoring(scoring)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid scoring data. Each scoring item must contain fromRank, toRank, reward.",
+      });
+    }
+
+    // Auto-start timestamp
+    let startedAt = null;
+    if (status === "running") {
+      startedAt = new Date();
+    }
+
+    const tournament = new Tournament({
+      name,
+      moves: Number(moves),
+      firstPrize: Number(firstPrize),
+      prizePool: Number(prizePool),
+      assuredWinners: Number(assuredWinners),
+      totalAllowedEntries: Number(totalAllowedEntries),
+      totalAllowedEntriesPerUser: Number(totalAllowedEntriesPerUser),
+      status,
+      scoring: scoring.map((s) => ({
+        fromRank: Number(s.fromRank),
+        toRank: Number(s.toRank),
+        reward: Number(s.reward),
+      })),
+      startedAt,
+    });
+
+    await tournament.save();
+
+    res.json({
+      message: "Tournament created successfully",
+      success: true,
+    });
   } catch (error) {
     ////console.log("paymentQr", error);
     return res.json({

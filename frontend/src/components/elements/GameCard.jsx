@@ -4,7 +4,9 @@ import { Link } from "react-router";
 
 export const GameCard = (props) => {
   const { t } = useTranslation();
-  if (props.title == "Quick Ludo") props.title = "Moves Ludo";
+  let title = props.title;
+  if (props.title == "Quick Ludo") title = "Moves Ludo";
+
   ////console.log(props);
   return (
     <>
@@ -23,7 +25,7 @@ export const GameCard = (props) => {
               />
               <div className="shine"></div>
               <div className="text-dark fw-bold text-center ">
-                {props.title.toUpperCase()}
+                {title.toUpperCase()}
               </div>
             </div>
           </div>

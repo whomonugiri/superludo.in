@@ -36,11 +36,14 @@ import {
   fetchMatchHistory,
   fetchQuickLudo,
   fetchSpeedLudo,
+  fetchTournament,
+  fetchTournaments,
   iLost,
   iWon,
   joinMatch,
   joinMatchCancel,
   joinMatchReq,
+  joinTournament,
   playClassicOnline,
   playQuickLudo,
   playSpeedLudo,
@@ -161,4 +164,8 @@ export const upload2 = multer({
 
 router.route("/sendMessage").post(upload2.single("audio"), auth, sendMessage);
 router.route("/fetchTextData").post(fetchTextData);
+router.route("/fetchTournaments").post(auth, fetchTournaments);
+router.route("/fetchTournament").post(auth, fetchTournament);
+router.route("/joinTournament").post(auth, joinTournament);
+
 export default router;

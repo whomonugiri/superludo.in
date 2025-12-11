@@ -12,6 +12,7 @@ const tournamentSchema = new mongoose.Schema(
 
     moves: { type: Number, required: true },
     entryFee: { type: Number, required: true },
+    joined: { type: Number, default: 0 },
 
     firstPrize: { type: Number, required: true },
     prizePool: { type: Number, required: true },

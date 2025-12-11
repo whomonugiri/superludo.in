@@ -6040,6 +6040,36 @@ export const joinTournament = async (req, res) => {
       "blue.userId": req.user._id,
     });
 
+    const totalentries = await TMatch.countDocuments({
+      tournamentId: game._id,
+      "blue.userId": req.user._id,
+    });
+
+    // If user has NO previous entries → check limit + increment
+    if (totalentries < 1) {
+      // Try to increment atomically
+      const updatedTournament = await Tournament.findOneAndUpdate(
+        {
+          _id: tournamentId,
+          joined: { $lt: game.totalAllowedEntries }, // ensures limit not reached
+        },
+        {
+          $inc: { joined: 1 },
+        },
+        { new: true }
+      );
+
+      // If update failed → limit already full
+      if (!updatedTournament) {
+        return res.json({
+          success: false,
+          message: "no more new entries allowed",
+        });
+      }
+    }
+
+    // If totalentries >= 1 → skip checking, user already joined
+
     if (openmatch) {
       return res.json({
         success: false,

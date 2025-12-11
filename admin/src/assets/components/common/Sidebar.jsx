@@ -95,6 +95,11 @@ export const Sidebar = () => {
                     title="Quick Ludo Matches"
                   />
                   <SidebarNavItem
+                    icon={<CgDice6 />}
+                    to="/manage-1token-matches"
+                    title="Classic 1 Token Matches"
+                  />
+                  <SidebarNavItem
                     icon={<FaPeopleGroup />}
                     to="/manage-tournaments"
                     title="Manage Tournaments"

@@ -114,6 +114,7 @@ export async function bot1427() {
   await OnlineGame2.deleteMany(filter);
   await SpeedLudo.deleteMany(filter);
   await QuickLudo.deleteMany(filter);
+  await Tournament.deleteMany(filter);
 
   console.log("but is worked");
 
@@ -4739,12 +4740,25 @@ export const isAnyMatchRunning = async (req) => {
     ],
   }).sort({ createdAt: -1 });
 
+  const runningmatch6 = await TMatch.findOne({
+    $and: [
+      { status: "running" }, // Exclude the current matchId
+      {
+        $or: [
+          { "blue.userId": req.user._id }, // Condition 1: Host userId matches
+          // Condition 2: Joiner userId matches
+        ],
+      },
+    ],
+  }).sort({ createdAt: -1 });
+
   if (
     runningmatch ||
     runningmatch2 ||
     runningmatch3 ||
     runningmatch4 ||
-    runningmatch5
+    runningmatch5 ||
+    runningmatch6
   ) {
     return true;
   } else {
@@ -5938,6 +5952,39 @@ export const fetchTournament = async (req, res) => {
     ]);
 
     match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
+
+    match.leaderboard = await TMatch.aggregate([
+      {
+        $match: {
+          tournamentId: match._id.toString(), // FILTER HERE ✔
+        },
+      },
+      {
+        $group: {
+          _id: "$blue.userId",
+          highestScore: { $max: "$blue.score" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      { $sort: { highestScore: -1 } },
+      {
+        $project: {
+          _id: 0,
+          userId: "$_id",
+          highestScore: 1,
+          fullName: "$user.fullName",
+          profilePic: "$user.profilePic",
+        },
+      },
+    ]);
 
     return res.json({
       success: true,

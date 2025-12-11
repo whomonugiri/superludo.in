@@ -40,6 +40,9 @@ import { OpenSpeedMatch } from "./assets/components/pages/OpenSpeedMatch";
 import { ManageQuickMatches } from "./assets/components/pages/ManageQuickMatches";
 import { OpenQuickMatch } from "./assets/components/pages/OpenQuickMatch";
 import { ManageTournaments } from "./assets/components/pages/ManageTournaments";
+import { OpenTournament } from "./assets/components/pages/OpenTournament";
+import { ManageOnlineMatches2 } from "./assets/components/pages/ManageOnlineMatches2";
+import { OpenOnlineMatch2 } from "./assets/components/pages/OpenOnlineMatch2";
 export const App = () => {
   const { isAuth } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
@@ -141,6 +144,14 @@ export const App = () => {
             }
           />
           <Route
+            path="manage-1token-matches"
+            element={
+              <ProtectedRoute isAuth={isAuth}>
+                <ManageOnlineMatches2 />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="manage-speed-matches"
             element={
               <ProtectedRoute isAuth={isAuth}>
@@ -238,6 +249,16 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="online-match2/:matchId"
+            element={
+              <ProtectedRoute isAuth={isAuth}>
+                <OpenOnlineMatch2 />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="manage-commission"
             element={
@@ -306,6 +327,15 @@ export const App = () => {
             element={
               <ProtectedRoute isAuth={isAuth}>
                 <OpenMatch />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="open-tournament/:matchId"
+            element={
+              <ProtectedRoute isAuth={isAuth}>
+                <OpenTournament />
               </ProtectedRoute>
             }
           />

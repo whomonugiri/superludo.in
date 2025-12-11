@@ -5,6 +5,7 @@ import { AdminList } from "../elements/AdminList";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { AddTournament } from "../elements/AddTournament";
+import { Tournaments } from "../elements/Tournaments";
 
 export const ManageTournaments = () => {
   const [menu, setMenu] = useState("Tournaments");
@@ -29,7 +30,7 @@ export const ManageTournaments = () => {
           />
         </div>
 
-        {menu == "Tournaments" && <AdminList />}
+        {menu == "Tournaments" && <Tournaments />}
 
         {menu == "Add New Tournament" && <AddTournament setMenu={setMenu} />}
       </div>

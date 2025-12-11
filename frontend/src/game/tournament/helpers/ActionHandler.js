@@ -9,6 +9,7 @@ import { DrawFinish } from "../actions/DrawFinish.js";
 import { ScoreAction } from "../actions/ScoreAction.js";
 
 export function truncateName(name) {
+  return name;
   return name.length > 12 ? `${name.substring(0, 12)}..` : name;
 }
 

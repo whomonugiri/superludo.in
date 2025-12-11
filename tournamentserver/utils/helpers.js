@@ -203,7 +203,7 @@ export const startTimer = (room, colors, io) => {
               colors,
               io
             );
-            // room.data[colors[room.currentTurn]].life--;
+            room.data[colors[room.currentTurn]].life--;
           }
         }, 100);
       }

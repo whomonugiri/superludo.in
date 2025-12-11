@@ -96,12 +96,6 @@ const Sidebar = () => {
           )}
 
           <SidebarButton
-            title={t("sidebar_leaderboard")}
-            icon={<FaRankingStar />}
-            path="/leaderboard"
-          />
-
-          <SidebarButton
             title={t("sidebar_refer")}
             icon={<MdMobileScreenShare />}
             path="/refer"

@@ -103,6 +103,15 @@ export const AddTournament = ({ setMenu }) => {
                 required
               />
             </div>
+            <div className="col-12 col-md-4 p-1">
+              <label className="small fw-bold">Entry Fee (₹)</label>
+              <input
+                type="number"
+                name="entryFee"
+                className="form-control form-control-sm"
+                required
+              />
+            </div>
 
             {/* First Prize */}
             <div className="col-12 col-md-4 p-1">
@@ -135,15 +144,6 @@ export const AddTournament = ({ setMenu }) => {
                 className="form-control form-control-sm"
                 required
               />
-            </div>
-
-            {/* Status */}
-            <div className="col-12 col-md-4 p-1">
-              <label className="small fw-bold">Status</label>
-              <select name="status" className="form-control form-control-sm">
-                <option value="draft">Draft</option>
-                <option value="running">Running</option>
-              </select>
             </div>
 
             {/* Total Allowed Entries */}

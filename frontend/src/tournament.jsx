@@ -35,8 +35,9 @@ const Tournament = () => {
     };
 
     window.addEventListener("navigate", handleNavigate);
-
+    console.log("before");
     if (!params.gameUid) navigate("/tournament");
+    console.log("after");
 
     // Retrieve required data from localStorage
     const gameUid = params.gameUid;
@@ -50,7 +51,7 @@ const Tournament = () => {
     if (!isIphone) {
       handle.enter();
     }
-    3;
+
     //console.log("Socket connected:", socketRef.current);
 
     if (!gameRef.current) {

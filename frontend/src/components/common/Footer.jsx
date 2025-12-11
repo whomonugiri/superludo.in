@@ -7,7 +7,7 @@ import {
 } from "react-icons/hi2";
 import { Button4 } from "../elements/Button4";
 import { useTranslation } from "react-i18next";
-import { BiHome, BiLogIn, BiRupee } from "react-icons/bi";
+import { BiHome, BiLogIn, BiMoney, BiRupee } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import {
   FaFileLines,
@@ -64,9 +64,9 @@ const Footer = () => {
 
           {isAuth && (
             <Button4
-              path="/leaderboard"
-              text={t("Leaderboard")}
-              icon={<FaRankingStar />}
+              path="/transactions"
+              text={t("Transactions")}
+              icon={<BiMoney />}
             />
           )}
 

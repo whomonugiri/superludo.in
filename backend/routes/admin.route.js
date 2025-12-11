@@ -6,6 +6,7 @@ import {
   addTxn,
   autologin,
   deleteParam,
+  endTournament,
   fetchAdmins,
   fetchChatList,
   fetchChats,
@@ -18,14 +19,19 @@ import {
   fetchMatch,
   fetchMatches,
   fetchOnlineMatch,
+  fetchOnlineMatch2,
   fetchOnlineMatches,
+  fetchOnlineMatches2,
   fetchQuickMatch,
   fetchQuickMatches,
   fetchSpeedMatch,
   fetchSpeedMatches,
+  fetchTournament,
+  fetchTournaments,
   fetchUser,
   fetchUserMatches,
   fetchUserOnlineMatches,
+  fetchUserOnlineMatches2,
   fetchUserQuickMatches,
   fetchUsersList,
   fetchUserSpeedMatches,
@@ -113,5 +119,10 @@ router.route("/deleteAdmin").post(auth, deleteAdmin);
 router.route("/deleteParam").post(auth, deleteParam);
 router.route("/fetchUserList").post(auth, _fetchChatList);
 router.route("/addNewTournament").post(auth, addTournament);
-
+router.route("/fetchTournaments").post(auth, fetchTournaments);
+router.route("/fetchTournament").post(auth, fetchTournament);
+router.route("/endTournament").post(auth, endTournament);
+router.route("/fetchUserOnlineMatches2").post(auth, fetchUserOnlineMatches2);
+router.route("/fetchOnlineMatches2").post(auth, fetchOnlineMatches2);
+router.route("/fetchOnlineMatch2").post(auth, fetchOnlineMatch2);
 export default router;

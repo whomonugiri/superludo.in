@@ -2,6 +2,71 @@
   background-color: rgba(13, 110, 253, 0.06) !important;
 }
 
+
+.t-card {
+  background: #1c1c1e;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #2c2c2e;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  transition: 0.2s scale;
+}
+
+.t-card:hover {
+  scale: 1.02;
+}
+
+.t-left {
+  background: linear-gradient(150deg, #ffcc00, #ff9900);
+  padding: 14px;
+  color: #000;
+}
+
+.t-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.t-icon {
+  background: rgba(0,0,0,0.2);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.t-label {
+  font-size: 10px;
+  opacity: 0.8;
+  margin-bottom: -2px;
+}
+
+.t-value {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.t-right {
+  padding: 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.progress {
+  height: 10px !important;
+  border-radius: 10px;
+}
+
+.progress-bar {
+  border-radius: 10px;
+}
+
 /* .btn-primary {
   background-color: #01017c;
   border-color: #01017c;

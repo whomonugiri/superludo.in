@@ -72,8 +72,8 @@ if (!fs.existsSync(uploadDir)) {
 //my name is monu kumar giri and i can do this all day and but
 
 const corsOptions = {
-  // origin: ["https://superludo.in", "https://admin.superludo.in"],
-  origin: "*",
+  origin: ["https://superludo.in", "https://admin.superludo.in"],
+  // origin: "*",
   credentials: true,
   methods: ["POST", "GET", "OPTIONS"],
 };

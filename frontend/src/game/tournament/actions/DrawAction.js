@@ -2,9 +2,9 @@ import { truncateName } from "../helpers/ActionHandler";
 import { ReadyOption } from "../helpers/ReadyOption";
 
 export const DrawAction = (scene) => {
-  scene.bluePic = scene.add
-    .image(311, 1066, scene.playerInfo.blue.profile.match(/^[^.]*/)[0])
-    .setScale(1.1);
+  // scene.bluePic = scene.add
+  //   .image(311, 1066, scene.playerInfo.blue.profile.match(/^[^.]*/)[0])
+  //   .setScale(1.1);
 
   scene.modeText = scene.add.text(
     30, // x position

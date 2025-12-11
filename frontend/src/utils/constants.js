@@ -1,14 +1,18 @@
-// export const HOST = "https://server.superludo.in";
-// export const SPEED_LUDO_SERVER = "https://speed-ludo-server.superludo.in";
-// export const CLASSIC_ONLINE_SERVER =
-//   "https://classic-online-server.superludo.in";
-// export const QUICK_LUDO_SERVER = "https://quick-ludo-server.superludo.in";
+export const HOST = "https://server.superludo.in";
+export const SPEED_LUDO_SERVER = "https://speed-ludo-server.superludo.in";
+export const CLASSIC_ONLINE_SERVER =
+  "https://classic-online-server.superludo.in";
+export const QUICK_LUDO_SERVER = "https://quick-ludo-server.superludo.in";
+export const TOURNAMENT_LUDO_SERVER = "https://tournament-server.superludo.in";
+export const CLASSIC_1TOKEN_SERVER =
+  "https://classic-1token-server.superludo.in";
 
-export const HOST = "http://localhost:3142";
-export const CLASSIC_ONLINE_SERVER = "http://localhost:3143";
-export const SPEED_LUDO_SERVER = "http://localhost:3144";
-export const QUICK_LUDO_SERVER = "http://localhost:3145";
-export const TOURNAMENT_LUDO_SERVER = "http://localhost:3146";
+// export const HOST = "http://localhost:3142";
+// export const CLASSIC_ONLINE_SERVER = "http://localhost:3143";
+// export const SPEED_LUDO_SERVER = "http://localhost:3144";
+// export const QUICK_LUDO_SERVER = "http://localhost:3145";
+// export const TOURNAMENT_LUDO_SERVER = "http://localhost:3146";
+// export const CLASSIC_1TOKEN_SERVER = "http://localhost:3147";
 export const CLIENT = "https://superludo.in";
 
 export const API_HOST = HOST + "/api/v1";
@@ -65,3 +69,7 @@ export const API_FETCH_TOURNAMENTS = "/user/fetchTournaments";
 export const API_FETCH_TOURNAMENT = "/user/fetchTournament";
 
 export const API_JOIN_TOURNAMENT = "/user/joinTournament";
+
+export const API_FETCH_CLASSIC_1TOKEN = "/user/fetchClassic1Token";
+export const API_CLASSIC_1TOKEN_PLAY = "/user/playClassic1Token";
+export const API_CLASSIC_1TOKEN_CANCEL = "/user/cancelClassic1Token";

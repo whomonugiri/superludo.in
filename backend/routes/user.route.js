@@ -25,11 +25,13 @@ import {
 import {
   acceptCancelRequest,
   cancelClassicOnline,
+  cancelClassicOnline2,
   cancelMatch,
   cancelQuickLudo,
   cancelSpeedLudo,
   createMatch,
   fetchClassicOnline,
+  fetchClassicOnline2,
   fetchGames,
   fetchMatch,
   fetchMatchData,
@@ -45,6 +47,7 @@ import {
   joinMatchReq,
   joinTournament,
   playClassicOnline,
+  playClassicOnline2,
   playQuickLudo,
   playSpeedLudo,
   submitCancelRequest,
@@ -96,6 +99,8 @@ router.route("/fetchMyReferrals").post(auth, fetchMyReferrals);
 router.route("/createMatch").post(auth, createMatch);
 router.route("/fetchMatchData").post(auth, fetchMatchData);
 router.route("/fetchClassicOnline").post(auth, fetchClassicOnline);
+router.route("/fetchClassic1Token").post(auth, fetchClassicOnline2);
+
 router.route("/fetchSpeedLudo").post(auth, fetchSpeedLudo);
 router.route("/fetchQuickLudo").post(auth, fetchQuickLudo);
 
@@ -113,10 +118,14 @@ router.route("/acceptCancelRequest").post(auth, acceptCancelRequest);
 router.route("/iWon").post(upload.single("image"), auth, iWon);
 router.route("/iLost").post(auth, iLost);
 router.route("/playClassicOnline").post(auth, playClassicOnline);
+router.route("/playClassic1Token").post(auth, playClassicOnline2);
+
 router.route("/playSpeedLudo").post(auth, playSpeedLudo);
 router.route("/playQuickLudo").post(auth, playQuickLudo);
 
 router.route("/cancelClassicOnline").post(auth, cancelClassicOnline);
+router.route("/cancelClassic1Token").post(auth, cancelClassicOnline2);
+
 router.route("/cancelSpeedLudo").post(auth, cancelSpeedLudo);
 router.route("/cancelQuickLudo").post(auth, cancelQuickLudo);
 

@@ -27,6 +27,7 @@ import { SpeedLudo } from "../../models/speedludo.js";
 import { QuickLudo } from "../../models/quickludo.js";
 import { OnlineGame2 } from "../../models/onlinegame2.js";
 import Tournament from "../../models/tournaments.js";
+import { TMatch } from "../../models/tmatch.js";
 export const _log = async (log) => {
   await Log.create(log);
 };
@@ -3111,8 +3112,9 @@ export const addTournament = async (req, res) => {
       assuredWinners,
       totalAllowedEntries,
       totalAllowedEntriesPerUser,
-      status,
+
       scoring,
+      entryFee,
     } = req.body;
 
     // Check required fields
@@ -3124,7 +3126,7 @@ export const addTournament = async (req, res) => {
       !assuredWinners ||
       !totalAllowedEntries ||
       !totalAllowedEntriesPerUser ||
-      !status ||
+      !entryFee ||
       !scoring
     ) {
       return res.status(400).json({ msg: "Missing required fields" });
@@ -3141,19 +3143,20 @@ export const addTournament = async (req, res) => {
 
     // Auto-start timestamp
     let startedAt = null;
-    if (status === "running") {
-      startedAt = new Date();
-    }
+
+    startedAt = new Date();
 
     const tournament = new Tournament({
       name,
       moves: Number(moves),
       firstPrize: Number(firstPrize),
+      entryFee: Number(entryFee),
+
       prizePool: Number(prizePool),
       assuredWinners: Number(assuredWinners),
       totalAllowedEntries: Number(totalAllowedEntries),
       totalAllowedEntriesPerUser: Number(totalAllowedEntriesPerUser),
-      status,
+      status: "running",
       scoring: scoring.map((s) => ({
         fromRank: Number(s.fromRank),
         toRank: Number(s.toRank),
@@ -3176,3 +3179,352 @@ export const addTournament = async (req, res) => {
     });
   }
 };
+
+export const fetchTournaments = async (req, res) => {
+  try {
+    let matches = {};
+
+    matches = await Tournament.find({})
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
+
+    for (let match of matches) {
+      // 🔹 Check if user is playing in this tournament
+
+      // 🔹 Count total joined players in this tournament
+      const joinedCount = await TMatch.aggregate([
+        {
+          $match: {
+            tournamentId: String(match._id),
+            status: { $in: ["running", "completed"] },
+          },
+        },
+        {
+          $group: {
+            _id: "$blue.userId",
+          },
+        },
+        {
+          $count: "totalJoined",
+        },
+      ]);
+
+      match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
+
+      match.totalEntries = await TMatch.countDocuments({
+        tournamentId: String(match._id),
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: matches,
+    });
+  } catch (error) {
+    ////console.log("createMatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const fetchTournament = async (req, res) => {
+  try {
+    const match = await Tournament.findOne({
+      _id: req.body.cond._id,
+    })
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
+
+    // 🔹 Count total joined players in this tournament
+    const joinedCount = await TMatch.aggregate([
+      {
+        $match: {
+          tournamentId: String(match._id),
+          status: { $in: ["running", "completed"] },
+        },
+      },
+      {
+        $group: {
+          _id: "$blue.userId",
+        },
+      },
+      {
+        $count: "totalJoined",
+      },
+    ]);
+
+    match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
+
+    match.leaderboard = await TMatch.aggregate([
+      {
+        $match: {
+          tournamentId: match._id.toString(), // no change
+        },
+      },
+
+      {
+        $group: {
+          _id: "$blue.userId",
+          highestScore: { $max: "$blue.score" },
+          totalPlayed: { $sum: 1 },
+        },
+      },
+
+      // user details
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+
+      // ⭐ NEW: Check if reward already given
+      {
+        $lookup: {
+          from: "transactions",
+          let: { uid: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$userId", "$$uid"] },
+                    { $eq: ["$tournamentId", match._id] },
+                    { $eq: ["$txnCtg", "reward"] },
+                    { $eq: ["$txnType", "credit"] },
+                  ],
+                },
+              },
+            },
+            { $limit: 1 },
+          ],
+          as: "rewardInfo",
+        },
+      },
+
+      {
+        $addFields: {
+          rewardGiven: {
+            $cond: [
+              { $gt: [{ $size: "$rewardInfo" }, 0] },
+              { $first: "$rewardInfo.amount" },
+              0,
+            ],
+          },
+        },
+      },
+
+      { $sort: { highestScore: -1 } },
+
+      {
+        $project: {
+          _id: 0,
+          userId: "$_id",
+          highestScore: 1,
+          totalPlayed: 1,
+          fullName: "$user.fullName",
+          mobileNumber: "$user.mobileNumber",
+
+          // ⭐ NEW FIELD
+          rewardGiven: 1,
+        },
+      },
+    ]);
+
+    return res.json({
+      success: true,
+      data: match,
+    });
+  } catch (error) {
+    ////console.log("fetchmatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+export const endTournament = async (req, res) => {
+  try {
+    const match = await Tournament.findOne({
+      _id: req.body.cond._id,
+    }).sort({
+      createdAt: -1,
+    });
+
+    const runningmatch = await TMatch.findOne({
+      tournamentId: match._id,
+      status: "running",
+    });
+
+    if (runningmatch) {
+      return res.json({
+        success: false,
+        message: "someone playing match in tournament please wait ...",
+      });
+    }
+
+    const leaderboard = await TMatch.aggregate([
+      {
+        $match: {
+          tournamentId: match._id.toString(), // ✅ filter only this tournament
+        },
+      },
+      {
+        $group: {
+          _id: "$blue.userId",
+          highestScore: { $max: "$blue.score" },
+          totalPlayed: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      { $sort: { highestScore: -1 } },
+      {
+        $project: {
+          _id: 0,
+          userId: "$_id",
+          highestScore: 1,
+          totalPlayed: 1,
+          fullName: "$user.fullName",
+          mobileNumber: "$user.mobileNumber",
+        },
+      },
+    ]);
+
+    const results = calculateTournamentRewards(leaderboard, match.scoring);
+
+    for (const item of results) {
+      const txnId = await newTxnId();
+
+      await Transaction.findOneAndUpdate(
+        {
+          userId: item.userId,
+          tournamentId: match._id,
+          txnCtg: "reward", // ✅ only reward entries
+          txnType: "credit", // ✅ only credit type
+        },
+        {
+          $setOnInsert: {
+            txnId: txnId,
+            userId: item.userId,
+            amount: item.reward,
+            cash: 0,
+            reward: item.reward,
+            bonus: 0,
+            remark: "Tournament Won",
+            status: "completed",
+            txnType: "credit",
+            txnCtg: "reward",
+            tournamentId: match._id,
+            createdAt: new Date(),
+          },
+        },
+        {
+          upsert: true, // insert only if reward does NOT exist
+          new: true,
+        }
+      ).catch((err) => {
+        console.error("Reward insert error:", err.message);
+      });
+    }
+
+    match.completedAt = Date.now();
+    match.status = "completed";
+    await match.save();
+    return res.json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    ////console.log("fetchmatch", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};
+
+function calculateTournamentRewards(leaderboard, scoring) {
+  if (!leaderboard.length) return [];
+
+  // ---- STEP 1: EXPAND SCORING RANKS ----
+  const rankRewards = [];
+
+  scoring.forEach((item) => {
+    const from = item.fromRank;
+    const to = item.toRank;
+    for (let r = from; r <= to; r++) {
+      rankRewards[r] = item.reward; // rank -> reward
+    }
+  });
+
+  // ---- STEP 2: GROUP PLAYERS BY SCORE (TIE HANDLING) ----
+  const groups = [];
+  let currentScore = leaderboard[0].highestScore;
+  let currentGroup = [];
+
+  leaderboard.forEach((player) => {
+    if (player.highestScore === currentScore) {
+      currentGroup.push(player);
+    } else {
+      groups.push(currentGroup);
+      currentScore = player.highestScore;
+      currentGroup = [player];
+    }
+  });
+  groups.push(currentGroup);
+
+  // ---- STEP 3: ASSIGN RANK BASED ON GROUPS ----
+  let currentRank = 1;
+  const finalRewards = [];
+
+  for (let group of groups) {
+    const groupSize = group.length;
+
+    // Ranks for this tie group
+    let ranks = [];
+    for (let i = 0; i < groupSize; i++) {
+      ranks.push(currentRank + i);
+    }
+
+    // ---- STEP 4: GET TOTAL REWARD FOR ALL RANKS IN THIS GROUP ----
+    let totalReward = 0;
+    ranks.forEach((r) => {
+      if (rankRewards[r]) totalReward += rankRewards[r];
+    });
+
+    // Divide reward equally
+    const rewardEach = totalReward / groupSize;
+
+    // ---- STEP 5: Provide Reward to Each Player ----
+    group.forEach((p) => {
+      finalRewards.push({
+        userId: p.userId,
+        highestScore: p.highestScore,
+        reward: rewardEach,
+      });
+    });
+
+    // Move to next rank
+    currentRank += groupSize;
+  }
+
+  return finalRewards;
+}

@@ -39,6 +39,8 @@ const Homepage = () => {
     classicOnline: "classic-online",
     speedOnline: "speedludo",
     quickOnline: "quickludo",
+    classic1Token: "classic-1token",
+    ludoLeague: "tournament",
   };
 
   useEffect(() => {
@@ -63,10 +65,7 @@ const Homepage = () => {
         <div className="d-flex flex-wrap justify-content-center">
           {games &&
             games.map((game, index) => {
-              if (
-                game.game == "classicManual" ||
-                game.game == "classic1Token"
-              ) {
+              if (game.game == "classicManual") {
                 return null;
               }
               return (

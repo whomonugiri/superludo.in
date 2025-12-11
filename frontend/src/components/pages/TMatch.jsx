@@ -35,6 +35,8 @@ import { useSelector } from "react-redux";
 import { motion } from "motion/react";
 import { GrTrophy } from "react-icons/gr";
 import { AiFillLike } from "react-icons/ai";
+import { IoArrowBackSharp } from "react-icons/io5";
+
 import { CiMedal } from "react-icons/ci";
 import { GiMedal } from "react-icons/gi";
 export const TMatch = () => {
@@ -43,6 +45,9 @@ export const TMatch = () => {
   const [match, setMatch] = useState(null);
   const [userType, setUserType] = useState(null);
   const [working, setWorking] = useState(false);
+
+  const [mode, setMode] = useState(1);
+
   const [time, setTime] = useState(180);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -96,6 +101,7 @@ export const TMatch = () => {
       );
       //console.log(res.data);
       if (res.data.success) {
+        navigate("/play-tournament/" + res.data.data._id);
         setWorking(false);
       } else {
         toastr.error(t(res.data.message));
@@ -130,129 +136,211 @@ export const TMatch = () => {
   return (
     <>
       {match && (
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-          <div
-            style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-            className="rounded small rounded-4 shadow-sm py-1 text-center my-2 mb-3 border fw-bold"
-          >
-            <FaHandHoldingHeart /> You can enter this tournament up to{" "}
-            {match.totalAllowedEntriesPerUser} times
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="d-flex justify-content-between align-items-center my-3">
+            <div className="fw-bold">{match.name}</div>
+            <Link
+              to="/tournament"
+              className="btn btn-sm btn-outline-primary d-flex gap-2 align-items-center"
+            >
+              <IoArrowBackSharp />
+              Back
+            </Link>
           </div>
 
-          <div
-            style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-            className="rounded rounded-4 shadow-sm p-2 my-2 mb-3 border"
-          >
-            <div className="d-flex flex-column justify-content-between p-2 gap-2">
-              {/* FIRST PRIZE */}
-              <div className="d-flex align-items-center gap-2">
-                <div style={{ lineHeight: "17px" }}>
-                  <div style={{ fontSize: "10px", opacity: 0.7 }}>
-                    PRIZE POOL
+          <div className="d-flex gap-2">
+            <button
+              className={`btn btn-outline-dark ${
+                mode == 1 && "btn-dark text-white fw-bold"
+              } rounded-4 w-100`}
+              onClick={() => setMode(1)}
+            >
+              Tournament
+            </button>
+            <button
+              className={`btn btn-outline-dark ${
+                mode == 2 && "btn-dark text-white fw-bold"
+              } rounded-4 w-100`}
+              onClick={() => setMode(2)}
+            >
+              Leaderboard
+            </button>
+          </div>
+          {mode == 1 && (
+            <div>
+              {/* ALLOWED ENTRIES PER USER */}
+              <div
+                className="rounded small rounded-4 py-2 px-3 text-center my-3 border fw-bold shadow-sm"
+                style={{
+                  background: "linear-gradient(145deg, #fff, #f1f1f1)",
+                  fontSize: "13px",
+                }}
+              >
+                <FaHandHoldingHeart className="me-1" />
+                You can enter this tournament up to{" "}
+                {match.totalAllowedEntriesPerUser} times
+              </div>
+
+              {/* MAIN INFO CARD */}
+              <div
+                className="rounded rounded-4 shadow-sm p-3 my-3 border"
+                style={{
+                  background: "linear-gradient(145deg, #ffffff, #f6f6f6)",
+                }}
+              >
+                <div className="d-flex flex-column gap-3">
+                  {/* PRIZE POOL */}
+                  <div className="d-flex align-items-center gap-3">
+                    <div>
+                      <div style={{ fontSize: "11px", opacity: 0.6 }}>
+                        PRIZE POOL
+                      </div>
+                      <div className="fw-bold" style={{ fontSize: "24px" }}>
+                        ₹{match.firstPrize}
+                      </div>
+                    </div>
                   </div>
-                  <div className="fw-bold" style={{ fontSize: "20px" }}>
-                    ₹{match.firstPrize}
+
+                  {/* PROGRESS BAR */}
+                  <div className="">
+                    <div className="my-1 w-100">
+                      <div
+                        className="progress bg-secondary shadow-sm"
+                        style={{ height: "10px" }}
+                      >
+                        <div
+                          className="progress-bar bg-warning"
+                          style={{
+                            width: `${
+                              (match.totalJoined / match.totalAllowedEntries) *
+                              100
+                            }%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: "11px", opacity: 0.8 }}>
+                      {match.totalJoined} / {match.totalAllowedEntries} filled
+                    </div>
+                  </div>
+
+                  {/* ENTRY FEE */}
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="text-dark">
+                      <FaRegPlayCircle size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "10px", opacity: 0.6 }}>
+                        FEE PER ENTRY
+                      </div>
+                      <div className="fw-bold" style={{ fontSize: "15px" }}>
+                        ₹{match.entryFee}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FIRST PRIZE */}
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="text-dark">
+                      <FaMedal size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "10px", opacity: 0.6 }}>
+                        FIRST PRIZE
+                      </div>
+                      <div className="fw-bold" style={{ fontSize: "15px" }}>
+                        ₹{match.firstPrize}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="">
-                <div className="my-1 w-100">
-                  <div
-                    className="progress bg-secondary border shadow-sm "
-                    style={{ height: "8px" }}
+              {/* PLAY BUTTON */}
+              <div>
+                {match.isUserPlaying ? (
+                  <button
+                    className="btn btn-warning rounded-pill w-100 fw-bold py-2 fs-5"
+                    onClick={() =>
+                      navigate("/play-tournament/" + match.activeMatch._id)
+                    }
                   >
-                    <div
-                      className="progress-bar bg-warning"
-                      style={{
-                        width: `${
-                          (match.totalJoined / match.totalAllowedEntries) * 100
-                        }%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: "10px", opacity: 0.95 }}>
-                  {match.totalJoined} / {match.totalAllowedEntries} filled
-                </div>
+                    RESUME GAME
+                  </button>
+                ) : (
+                  <Button1
+                    text={t("PLAY NOW")}
+                    working={working}
+                    action={jointournament}
+                    class="btn-success fw-bold py-2 fs-5 rounded-5 w-100"
+                  />
+                )}
               </div>
 
-              {/* PRIZE POOL */}
-              <div className="d-flex align-items-center gap-2">
-                <div className="text-dark">
-                  <FaRegPlayCircle size={20} />
-                </div>
-                <div style={{ lineHeight: "13px" }}>
-                  <div style={{ fontSize: "9px" }}>FEE PER ENTRY</div>
-                  <div className="fw-bold" style={{ fontSize: "13px" }}>
-                    ₹{match.entryFee}
-                  </div>
-                </div>
-              </div>
-
-              {/* PRIZE POOL */}
-              <div className="d-flex align-items-center gap-2">
-                <div className="text-dark">
-                  <FaMedal size={20} />
-                </div>
-                <div style={{ lineHeight: "13px" }}>
-                  <div style={{ fontSize: "9px" }}>FIRST PRIZE</div>
-                  <div className="fw-bold" style={{ fontSize: "13px" }}>
-                    ₹{match.firstPrize}
-                  </div>
-                </div>
+              {/* PRIZE DISTRIBUTION */}
+              <div
+                className="rounded rounded-4 shadow-sm p-3 my-3 border"
+                style={{
+                  background: "linear-gradient(145deg, #ffffff, #f6f6f6)",
+                }}
+              >
+                <div className="fw-bold mb-2">Prize Distribution</div>
+                <table className="table mb-0">
+                  <tbody>
+                    {match.scoring.map((score) => {
+                      return (
+                        <tr key={score._id}>
+                          <td className="bg-transparent">
+                            Rank{" "}
+                            {score.fromRank === score.toRank
+                              ? score.fromRank
+                              : `${score.fromRank}-${score.toRank}`}
+                          </td>
+                          <td className="text-end bg-transparent fw-bold">
+                            ₹{score.reward}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            {match.isUserPlaying && (
-              <button
-                className="btn btn-warning rounded-pill w-100 fw-bold fs-4 py-1"
-                style={{ fontSize: "12px" }}
-                onClick={() =>
-                  navigate("/play-tournament/" + match.activeMatch._id)
-                }
+          {mode == 2 && (
+            <div>
+              <div
+                className="rounded rounded-4 shadow-sm p-3 my-3 border"
+                style={{
+                  background: "linear-gradient(145deg, #ffffff, #f6f6f6)",
+                }}
               >
-                RESUME GAME
-              </button>
-            )}
-
-            {!match.isUserPlaying && (
-              <Button1
-                text={t("PLAY NOW")}
-                working={working}
-                action={jointournament}
-                class="btn-success  fw-bold px-3  px-2 small rounded-5 fs-4 w-100"
-              />
-            )}
-          </div>
-
-          <div
-            style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-            className="rounded rounded-4 shadow-sm p-2 my-3 mb-3 border"
-          >
-            <div className="fw-bold">Prize Distribution</div>
-            <table className="table">
-              <tbody>
-                {match.scoring.map((score) => {
-                  return (
-                    <tr key={score._id} className="">
-                      <td className="bg-transparent">
-                        Rank {score.fromRank == score.toRank && score.fromRank}
-                        {score.fromRank != score.toRank &&
-                          score.fromRank + "-" + score.toRank}
-                      </td>
-                      <td className="text-end bg-transparent">
-                        ₹{score.reward}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                <div className="fw-bold mb-2 text-center">Top Scores</div>
+                <table className="table mb-0">
+                  <tbody>
+                    {match.leaderboard.map((score, index) => {
+                      return (
+                        <tr key={score.userId}>
+                          <td className="bg-transparent ">
+                            {index + 1}. {score.fullName}
+                          </td>
+                          <td className="text-end bg-transparent fw-bold">
+                            {score.highestScore}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
     </>

@@ -5986,6 +5986,13 @@ export const fetchTournament = async (req, res) => {
       },
     ]);
 
+    const joined = await TMatch.findOne({
+      tournamentId: match._id,
+      "blue.userId": req.user._id,
+    });
+
+    if (!joined) match.leaderboard = [];
+
     return res.json({
       success: true,
       match: match,

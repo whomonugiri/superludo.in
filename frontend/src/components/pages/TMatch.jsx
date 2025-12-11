@@ -322,6 +322,11 @@ export const TMatch = () => {
                 }}
               >
                 <div className="fw-bold mb-2 text-center">Top Scores</div>
+                {match.leaderboard.length < 1 && (
+                  <div className="small text-center opacity-75 my-2 p-2">
+                    Join the tournament to see leaderboard
+                  </div>
+                )}
                 <table className="table mb-0">
                   <tbody>
                     {match.leaderboard.map((score, index) => {

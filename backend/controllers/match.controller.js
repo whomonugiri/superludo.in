@@ -6075,6 +6075,13 @@ export const joinTournament = async (req, res) => {
       }
     }
 
+    if (totalentries >= game.totalAllowedEntriesPerUser) {
+      return res.json({
+        success: false,
+        message: "you reached your maximum entries limit for this tournament",
+      });
+    }
+
     // If totalentries >= 1 → skip checking, user already joined
 
     if (openmatch) {

@@ -227,6 +227,16 @@ export const Dashboard = () => {
                   money={true}
                   desc={`(total completed 1 token match reward)`}
                 />
+
+                <ReportItem
+                  title="Tournament Profit/Loss"
+                  value={
+                    data.Tournament_Data.totalBetAmount -
+                    data.Tournament_Data.totalRewardAmount
+                  }
+                  money={true}
+                  desc={`(only completed tournaments)`}
+                />
               </div>
             )}
           </div>

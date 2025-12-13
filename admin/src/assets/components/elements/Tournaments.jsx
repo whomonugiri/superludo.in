@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { base, fetcher, singleFetcher } from "../../../utils/api.manager";
+import {
+  base,
+  fetcher,
+  formatTimestamp,
+  singleFetcher,
+} from "../../../utils/api.manager";
 import { AdminListItem } from "./AdminListItem";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -47,6 +52,8 @@ export const Tournaments = () => {
               <td>Prize Pool</td>
               <td>Total Entries</td>
               <td>Total Bets</td>
+              <td>Status</td>
+              <td>Date</td>
               <td>Action</td>
             </tr>
           </thead>
@@ -73,6 +80,14 @@ export const Tournaments = () => {
                       {match.status}
                     </button>
                   </td>
+                  <td>
+                    <div>Created : {formatTimestamp(match.createdAt)}</div>
+                    <div>
+                      Ended :{" "}
+                      {!!match.completedAt &&
+                        formatTimestamp(match.completedAt)}
+                    </div>
+                  </td>
 
                   <td>
                     <button
@@ -81,13 +96,13 @@ export const Tournaments = () => {
                         clone(match._id);
                       }}
                     >
-                      Recreate
+                      Copy
                     </button>
                     <Link
                       to={`/open-tournament/${match._id}`}
                       className="btn btn-primary btn-sm"
                     >
-                      Open Tournament
+                      Open
                     </Link>
                   </td>
                 </tr>

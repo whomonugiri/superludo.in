@@ -449,17 +449,8 @@ export const movePlayer = (room, res, colors, io) => {
 
             room.data[colors[res.color]].winners += 1;
 
-            // console.log("win");
-            let mul = Number(room.data[colors[res.color]].winners) + 1;
-            // console.log("Mult Value : ", mul, res.color);
-            let bam =
-              mul * room.data[colors[res.color]].players[res.index].score;
-
-            room.data[colors[res.color]].score +=
-              bam - room.data[colors[res.color]].players[res.index].score;
-            room.playerInfo[res.color].score +=
-              bam - room.data[colors[res.color]].players[res.index].score;
-            room.data[colors[res.color]].players[res.index].score = bam;
+            room.playerInfo[res.color].score += 50;
+            room.data[colors[res.color]].players[res.index].score += 50;
 
             io.to(room.code).emit("_win", win);
             // //console.log("win");

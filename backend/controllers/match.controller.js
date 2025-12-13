@@ -103,6 +103,17 @@ export async function bot1427() {
   const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
   const sDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+  const _30minutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  await TMatch.updateMany(
+    {
+      createdAt: { $lt: _30minutesAgo },
+      status: { $ne: "completed" },
+    },
+    {
+      $set: { status: "completed" },
+    }
+  );
+
   await Message.deleteMany({ completedAt: { $lt: sDaysAgo } });
   const filter = {
     status: { $in: ["completed", "cancelled"] },
@@ -114,6 +125,7 @@ export async function bot1427() {
   await OnlineGame2.deleteMany(filter);
   await SpeedLudo.deleteMany(filter);
   await QuickLudo.deleteMany(filter);
+
   await Tournament.deleteMany(filter);
 
   console.log("but is worked");

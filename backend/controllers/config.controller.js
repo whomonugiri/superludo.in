@@ -7,6 +7,7 @@ import { OnlineGame2 } from "../models/onlinegame2.js";
 import OTP from "../models/otp.model.js";
 import { QuickLudo } from "../models/quickludo.js";
 import { SpeedLudo } from "../models/speedludo.js";
+import Tournament from "../models/tournaments.js";
 import { Transaction } from "../models/transaction.models.js";
 import User from "../models/user.model.js";
 import {
@@ -236,11 +237,71 @@ export const fetchReports = async (req, res) => {
 
     data.TokenReward = betmoney5.length > 0 ? betmoney5[0].totalPrize : 0;
 
+    const tournaments = await Tournament.find(
+      {
+        status: "completed",
+        completedAt: zone,
+      },
+      { _id: 1 }
+    );
+
+    const tournamentIds = tournaments.map((t) => t._id);
+
+    const stats = await Transaction.aggregate([
+      {
+        $match: {
+          tournamentId: { $in: tournamentIds },
+          txnCtg: { $in: ["bet", "reward"] },
+          txnType: { $in: ["debit", "credit"] },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+
+          totalBetAmount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$txnCtg", "bet"] },
+                    { $eq: ["$txnType", "debit"] },
+                  ],
+                },
+                "$amount",
+                0,
+              ],
+            },
+          },
+
+          totalRewardAmount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$txnCtg", "reward"] },
+                    { $eq: ["$txnType", "credit"] },
+                  ],
+                },
+                "$amount",
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const resultt = stats[0] || { totalBetAmount: 0, totalRewardAmount: 0 };
+
     // data.SpeedReward += betmoney3.length > 0 ? betmoney3[0].totalPrize2 : 0;
 
     // Extract the total sum from the result
     data.Total_Played_Bet = bmoney * 2;
     data.Total_Reward_Earned = pmoney;
+
+    data.Total_Played_Bet += resultt.totalBetAmount;
+    data.Total_Reward_Earned += resultt.totalRewardAmount;
 
     data.Total_Played_Bet += data.SpeedBet;
     data.Total_Reward_Earned += data.SpeedReward;
@@ -417,6 +478,7 @@ export const fetchReports = async (req, res) => {
     data.User_Cash_Wallet_Balance = money.cash.toFixed(2);
     data.User_Bonus_Wallet_Balance = money.bonus.toFixed(2);
     data.User_Reward_Wallet_Balance = money.reward.toFixed(2);
+    data.Tournament_Data = resultt;
 
     return res.json({
       success: true,

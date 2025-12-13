@@ -5,6 +5,7 @@ import {
   addTournament,
   addTxn,
   autologin,
+  cloneTournament,
   deleteParam,
   endTournament,
   fetchAdmins,
@@ -125,4 +126,6 @@ router.route("/endTournament").post(auth, endTournament);
 router.route("/fetchUserOnlineMatches2").post(auth, fetchUserOnlineMatches2);
 router.route("/fetchOnlineMatches2").post(auth, fetchOnlineMatches2);
 router.route("/fetchOnlineMatch2").post(auth, fetchOnlineMatch2);
+router.route("/cloneTournament").post(auth, cloneTournament);
+
 export default router;

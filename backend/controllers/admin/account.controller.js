@@ -3528,3 +3528,49 @@ function calculateTournamentRewards(leaderboard, scoring) {
 
   return finalRewards;
 }
+
+export const cloneTournament = async (req, res) => {
+  try {
+    const { tournamentId } = req.body;
+
+    const oldTournament = await Tournament.findById(tournamentId);
+
+    if (!oldTournament) {
+      return res.json({
+        message: "Invalid tournament id",
+        success: false,
+      });
+    }
+
+    const tournament = new Tournament({
+      name: oldTournament.name,
+      moves: oldTournament.moves,
+      firstPrize: oldTournament.firstPrize,
+      entryFee: oldTournament.entryFee,
+      prizePool: oldTournament.prizePool,
+      assuredWinners: oldTournament.assuredWinners,
+      totalAllowedEntries: oldTournament.totalAllowedEntries,
+      totalAllowedEntriesPerUser: oldTournament.totalAllowedEntriesPerUser,
+      scoring: oldTournament.scoring,
+
+      // important
+      status: "running",
+      totalJoined: 0,
+      startedAt: new Date(),
+    });
+
+    await tournament.save();
+
+    return res.json({
+      message: "Tournament recreated successfully",
+      success: true,
+      tournamentId: tournament._id,
+    });
+  } catch (error) {
+    ////console.log("paymentQr", error);
+    return res.json({
+      success: false,
+      message: error.response ? error.response.data.message : error.message,
+    });
+  }
+};

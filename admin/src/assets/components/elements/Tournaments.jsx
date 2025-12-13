@@ -48,8 +48,8 @@ export const Tournaments = () => {
               <td>#</td>
               <td>Name</td>
               <td>Entry Fee</td>
-              <td>Users Joined</td>
-              <td>Prize Pool</td>
+              <td>Users</td>
+              <td>Pool</td>
               <td>Total Entries</td>
               <td>Total Bets</td>
               <td>Status</td>
@@ -62,7 +62,11 @@ export const Tournaments = () => {
               matches.map((match, index) => (
                 <tr key={match._id}>
                   <td>{index + 1}</td>
-                  <td>{match.name}</td>
+                  <td>
+                    {match.name}
+
+                    <div>Created : {formatTimestamp(match.createdAt)}</div>
+                  </td>
                   <td>₹ {match.entryFee}</td>
                   <td>
                     {match.totalJoined}/{match.totalAllowedEntries}
@@ -73,15 +77,12 @@ export const Tournaments = () => {
                   <td> ₹ {match.totalEntries * match.entryFee}</td>
                   <td>
                     <button
-                      className={`btn btn-sm btn-dark ${
+                      className={`btn btn-sm btn-dark p-0 p-1 ${
                         match.status == "running" && "text-white bg-success"
                       }`}
                     >
                       {match.status}
                     </button>
-                  </td>
-                  <td>
-                    <div>Created : {formatTimestamp(match.createdAt)}</div>
                     <div>
                       Ended :{" "}
                       {!!match.completedAt &&

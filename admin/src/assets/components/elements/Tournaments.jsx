@@ -53,7 +53,7 @@ export const Tournaments = () => {
               <td>Total Entries</td>
               <td>Total Bets</td>
               <td>Status</td>
-              <td>Date</td>
+
               <td>Action</td>
             </tr>
           </thead>

@@ -18,7 +18,6 @@ export const ManageTournaments = () => {
   const { _access, _isSuperadmin } = useSelector((store) => store.auth);
   useEffect(() => {
     if (!_access.includes(auth) && !_isSuperadmin) navigate("/");
-    if (!_isSuperadmin) navigate("/");
   }, []);
   return (
     <>

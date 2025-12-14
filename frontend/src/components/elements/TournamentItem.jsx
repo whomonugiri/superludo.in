@@ -141,23 +141,33 @@ export const TournamentItem = ({ data }) => {
                 ENTRY
               </div>
 
-              {data.isUserPlaying ? (
+              {data.status === "completed" && (
                 <button
-                  className="btn btn-warning rounded-pill w-100 fw-bold py-1 mt-1"
+                  className="btn btn-secondary rounded-pill w-100 fw-bold py-1 mt-1"
                   style={{ fontSize: "13px" }}
                   onClick={() => navigate("/open-tournament/" + data._id)}
                 >
-                  RESUME GAME
-                </button>
-              ) : (
-                <button
-                  className="btn btn-success rounded-pill w-100 fw-bold py-1 mt-1"
-                  style={{ fontSize: "13px" }}
-                  onClick={() => navigate("/open-tournament/" + data._id)}
-                >
-                  ₹{data.entryFee}
+                  OPEN
                 </button>
               )}
+              {data.status === "running" &&
+                (data.isUserPlaying ? (
+                  <button
+                    className="btn btn-warning rounded-pill w-100 fw-bold py-1 mt-1"
+                    style={{ fontSize: "13px" }}
+                    onClick={() => navigate("/open-tournament/" + data._id)}
+                  >
+                    RESUME GAME
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-success rounded-pill w-100 fw-bold py-1 mt-1"
+                    style={{ fontSize: "13px" }}
+                    onClick={() => navigate("/open-tournament/" + data._id)}
+                  >
+                    ₹{data.entryFee}
+                  </button>
+                ))}
             </div>
           </div>
         </div>

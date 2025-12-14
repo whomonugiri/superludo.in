@@ -5869,56 +5869,88 @@ export const cancelQuickLudo = async (req, res) => {
 
 export const fetchTournaments = async (req, res) => {
   try {
+    const userId = req.user._id;
+
     const matches = {};
 
+    // 1️⃣ Running tournaments
     matches.omatch = await Tournament.find({ status: "running" })
-      .sort({
-        createdAt: -1,
-      })
+      .sort({ createdAt: -1 })
       .lean();
 
-    for (let match of matches.omatch) {
-      // 🔹 Check if user is playing in this tournament
-      const playing = await TMatch.findOne({
-        tournamentId: match._id,
-        $or: [{ "blue.userId": req.user._id }],
+    // 2️⃣ Tournament IDs where user played/playing
+    const tournamentIds = await TMatch.distinct("tournamentId", {
+      "blue.userId": userId,
+    });
+
+    // 3️⃣ Tournament history
+    matches.thistory = await Tournament.find({
+      _id: { $in: tournamentIds },
+    }).lean();
+
+    // 4️⃣ User playing status (bulk)
+    const runningUserMatches = await TMatch.find(
+      {
+        "blue.userId": userId,
         status: "running",
-      });
+      },
+      { tournamentId: 1 }
+    ).lean();
 
-      match.isUserPlaying = !!playing; // true / false
+    const playingTournamentSet = new Set(
+      runningUserMatches.map((m) => String(m.tournamentId))
+    );
 
-      // 🔹 Count total joined players in this tournament
-      const joinedCount = await TMatch.aggregate([
-        {
-          $match: {
-            tournamentId: String(match._id),
-            status: { $in: ["running", "completed"] },
+    // 5️⃣ Joined count per tournament (bulk)
+    const joinedCounts = await TMatch.aggregate([
+      {
+        $match: {
+          status: { $in: ["running", "completed"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            tournamentId: "$tournamentId",
+            userId: "$blue.userId",
           },
         },
-        {
-          $group: {
-            _id: "$blue.userId",
-          },
+      },
+      {
+        $group: {
+          _id: "$_id.tournamentId",
+          totalJoined: { $sum: 1 },
         },
-        {
-          $count: "totalJoined",
-        },
-      ]);
+      },
+    ]);
 
-      match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
-    }
+    const joinedMap = {};
+    joinedCounts.forEach((j) => {
+      joinedMap[String(j._id)] = j.totalJoined;
+    });
+
+    // 6️⃣ Attach flags to tournaments
+    const attachMeta = (list) =>
+      list.map((t) => ({
+        ...t,
+        isUserPlaying: playingTournamentSet.has(String(t._id)),
+        totalJoined: joinedMap[String(t._id)] || 0,
+      }));
+
+    matches.omatch = attachMeta(matches.omatch);
+    matches.thistory = attachMeta(matches.thistory);
 
     const money = await balance(req);
+
     return res.json({
       success: true,
-      matches: matches,
+      matches,
       balance: money,
     });
   } catch (error) {
-    ////console.log("createMatch", error);
     return res.json({
       success: false,
-      message: error.response ? error.response.data.message : error.message,
+      message: error.message,
     });
   }
 };
@@ -5927,7 +5959,6 @@ export const fetchTournament = async (req, res) => {
   try {
     const match = await Tournament.findOne({
       _id: req.body.tournamentId,
-      status: "running",
     })
       .sort({
         createdAt: -1,
@@ -5966,17 +5997,22 @@ export const fetchTournament = async (req, res) => {
     match.totalJoined = joinedCount.length ? joinedCount[0].totalJoined : 0;
 
     match.leaderboard = await TMatch.aggregate([
+      // 1️⃣ Match tournament
       {
         $match: {
-          tournamentId: match._id.toString(), // FILTER HERE ✔
+          tournamentId: match._id.toString(), // ✅ ObjectId
         },
       },
+
+      // 2️⃣ Highest score per user
       {
         $group: {
           _id: "$blue.userId",
           highestScore: { $max: "$blue.score" },
         },
       },
+
+      // 3️⃣ Join users
       {
         $lookup: {
           from: "users",
@@ -5986,14 +6022,57 @@ export const fetchTournament = async (req, res) => {
         },
       },
       { $unwind: "$user" },
+
+      // 4️⃣ Join transactions (reward credits)
+      {
+        $lookup: {
+          from: "transactions",
+          let: { userId: "$_id", tournamentId: match._id },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$userId", "$$userId"] },
+                    { $eq: ["$tournamentId", "$$tournamentId"] },
+                    { $eq: ["$txnType", "credit"] },
+                    { $eq: ["$txnCtg", "reward"] },
+                  ],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalReward: { $sum: "$amount" },
+              },
+            },
+          ],
+          as: "reward",
+        },
+      },
+
+      // 5️⃣ Flatten reward
+      {
+        $addFields: {
+          rewardAmount: {
+            $ifNull: [{ $arrayElemAt: ["$reward.totalReward", 0] }, 0],
+          },
+        },
+      },
+
+      // 6️⃣ Sort leaderboard
       { $sort: { highestScore: -1 } },
+
+      // 7️⃣ Final shape
       {
         $project: {
           _id: 0,
           userId: "$_id",
           highestScore: 1,
+          rewardAmount: 1,
           fullName: "$user.fullName",
-          profilePic: "$user.profilePic",
+          mobileNumber: "$user.mobileNumber",
         },
       },
     ]);

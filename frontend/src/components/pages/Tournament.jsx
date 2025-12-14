@@ -32,8 +32,9 @@ import { FaDice } from "react-icons/fa6";
 export const Tournament = () => {
   const { isAuth } = useSelector((store) => store.auth);
 
+  const [currentOption, setCurrentOption] = useState(1);
   const [omatches, setOmatches] = useState([]);
-  const [pmatch, setPmatch] = useState(null);
+  const [thistory, setThistory] = useState([]);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -59,6 +60,7 @@ export const Tournament = () => {
 
       if (res.data.success) {
         setOmatches(res.data.matches.omatch);
+        setThistory(res.data.matches.thistory);
 
         dispatch(updateWallet(res.data.balance));
       } else {
@@ -91,18 +93,65 @@ export const Tournament = () => {
         <div className="fs-5 fw-bold text-center my-2">LUDO LEAGUE</div>
       </motion.div>
 
-      {omatches &&
-        omatches.length > 0 &&
-        omatches.map((match, index) => (
-          <TournamentItem key={match._id} data={match} />
-        ))}
+      <div className="d-flex gap-2">
+        <button
+          className={`btn btn-outline-dark ${
+            currentOption == 1 && "btn-dark text-white"
+          } btn-sm fw-bold w-100`}
+          onClick={() => {
+            setCurrentOption(1);
+          }}
+        >
+          Tournaments
+        </button>
+        <button
+          className={`btn btn-outline-dark ${
+            currentOption == 2 && "btn-dark text-white"
+          } btn-sm fw-bold w-100`}
+          onClick={() => {
+            setCurrentOption(2);
+          }}
+        >
+          History
+        </button>
+      </div>
+      {currentOption == 1 && (
+        <div>
+          {omatches &&
+            omatches.length > 0 &&
+            omatches.map((match, index) => (
+              <TournamentItem key={match._id} data={match} />
+            ))}
 
-      {omatches.length < 1 && (
-        <div className="text-center opacity-75 px-5 py-3  shadow-sm rounded border ">
+          {omatches.length < 1 && (
+            <div className="text-center opacity-75 px-5 py-3  shadow-sm rounded border ">
+              <div>
+                <FaDice className="fs-1" />
+              </div>
+              No Tournaments Running
+            </div>
+          )}
+        </div>
+      )}
+
+      {currentOption == 2 && (
+        <div>
           <div>
-            <FaDice className="fs-1" />
+            {thistory &&
+              thistory.length > 0 &&
+              thistory.map((match, index) => (
+                <TournamentItem key={match._id} data={match} />
+              ))}
+
+            {thistory.length < 1 && (
+              <div className="text-center opacity-75 px-5 py-3  shadow-sm rounded border ">
+                <div>
+                  <FaDice className="fs-1" />
+                </div>
+                No Tournment joined from last 2 days
+              </div>
+            )}
           </div>
-          No Tournaments Running
         </div>
       )}
     </>

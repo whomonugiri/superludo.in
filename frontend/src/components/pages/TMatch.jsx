@@ -51,6 +51,7 @@ export const TMatch = () => {
   const [time, setTime] = useState(180);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { mobileNumber } = useSelector((store) => store.auth);
   const params = useParams("gameUid");
   const fetchMatch = async () => {
     try {
@@ -167,23 +168,27 @@ export const TMatch = () => {
               } rounded-4 w-100`}
               onClick={() => setMode(2)}
             >
-              Leaderboard
+              {match.status == "running" && "Leaderboard"}
+              {match.status == "completed" && "See Results"}
             </button>
           </div>
           {mode == 1 && (
             <div>
               {/* ALLOWED ENTRIES PER USER */}
-              <div
-                className="rounded small rounded-4 py-2 px-3 text-center my-3 border fw-bold shadow-sm"
-                style={{
-                  background: "linear-gradient(145deg, #fff, #f1f1f1)",
-                  fontSize: "13px",
-                }}
-              >
-                <FaHandHoldingHeart className="me-1" />
-                You can enter this tournament up to{" "}
-                {match.totalAllowedEntriesPerUser} times
-              </div>
+
+              {match.status == "running" && (
+                <div
+                  className="rounded small rounded-4 py-2 px-3 text-center my-3 border fw-bold shadow-sm"
+                  style={{
+                    background: "linear-gradient(145deg, #fff, #f1f1f1)",
+                    fontSize: "13px",
+                  }}
+                >
+                  <FaHandHoldingHeart className="me-1" />
+                  You can enter this tournament up to{" "}
+                  {match.totalAllowedEntriesPerUser} times
+                </div>
+              )}
 
               {/* MAIN INFO CARD */}
               <div
@@ -263,23 +268,24 @@ export const TMatch = () => {
 
               {/* PLAY BUTTON */}
               <div>
-                {match.isUserPlaying ? (
-                  <button
-                    className="btn btn-warning rounded-pill w-100 fw-bold py-2 fs-5"
-                    onClick={() =>
-                      navigate("/play-tournament/" + match.activeMatch._id)
-                    }
-                  >
-                    RESUME GAME
-                  </button>
-                ) : (
-                  <Button1
-                    text={t("PLAY NOW")}
-                    working={working}
-                    action={jointournament}
-                    class="btn-success fw-bold py-2 fs-5 rounded-5 w-100"
-                  />
-                )}
+                {match.status === "running" &&
+                  (match.isUserPlaying ? (
+                    <button
+                      className="btn btn-warning rounded-pill w-100 fw-bold py-2 fs-5"
+                      onClick={() =>
+                        navigate("/play-tournament/" + match.activeMatch._id)
+                      }
+                    >
+                      RESUME GAME
+                    </button>
+                  ) : (
+                    <Button1
+                      text={t("PLAY NOW")}
+                      working={working}
+                      action={jointournament}
+                      class="btn-success fw-bold py-2 fs-5 rounded-5 w-100"
+                    />
+                  ))}
               </div>
 
               {/* PRIZE DISTRIBUTION */}
@@ -328,19 +334,75 @@ export const TMatch = () => {
                   </div>
                 )}
                 <table className="table mb-0">
+                  {match.status == "completed" && (
+                    <thead className="">
+                      <tr>
+                        <td className="bg-dark fw-bold text-white">Rank</td>
+                        <td className="bg-dark fw-bold text-white">Score</td>
+
+                        <td className="text-end bg-dark fw-bold text-white">
+                          Reward
+                        </td>
+                      </tr>
+                    </thead>
+                  )}
                   <tbody>
-                    {match.leaderboard.map((score, index) => {
-                      return (
-                        <tr key={score.userId}>
-                          <td className="bg-transparent ">
-                            {index + 1}. {score.fullName}
-                          </td>
-                          <td className="text-end bg-transparent fw-bold">
-                            {score.highestScore}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {match.status == "completed" &&
+                      match.leaderboard.map((score, index) => {
+                        if (mobileNumber == score.mobileNumber) {
+                          return (
+                            <tr key={score.userId} className="">
+                              <td className="text-white bg-dark rounded-start fw-bold">
+                                {index + 1}. You
+                              </td>
+                              <td className=" bg-dark text-white fw-bold">
+                                {score.highestScore}
+                              </td>
+                              <td className="text-end bg-dark text-white fw-bold rounded-end">
+                                ₹ {score.rewardAmount}
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return (
+                          <tr key={score.userId}>
+                            <td className="bg-transparent ">
+                              {index + 1}. {score.fullName}
+                            </td>
+                            <td className="text-end bg-transparent fw-bold">
+                              {score.highestScore}
+                            </td>
+                          </tr>
+                        );
+                      })}
+
+                    {match.status == "running" &&
+                      match.leaderboard.map((score, index) => {
+                        if (mobileNumber == score.mobileNumber) {
+                          return (
+                            <tr key={score.userId} className="">
+                              <td className="text-white bg-dark rounded-start fw-bold">
+                                {index + 1}. You
+                              </td>
+                              <td className="text-end bg-dark text-white rounded-end fw-bold">
+                                {score.highestScore}
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return (
+                          <tr key={score.userId}>
+                            <td className="bg-transparent ">
+                              {index + 1}. {score.fullName}
+                            </td>
+                            <td className="text-end bg-transparent fw-bold">
+                              {score.highestScore}
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>

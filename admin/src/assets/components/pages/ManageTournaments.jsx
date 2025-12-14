@@ -8,6 +8,7 @@ import { AddTournament } from "../elements/AddTournament";
 import { Tournaments } from "../elements/Tournaments";
 
 export const ManageTournaments = () => {
+  const auth = "MANAGE MATCH";
   const [menu, setMenu] = useState("Tournaments");
   const handleMenu = (menu) => {
     setMenu(menu);
@@ -16,6 +17,7 @@ export const ManageTournaments = () => {
   const navigate = useNavigate();
   const { _access, _isSuperadmin } = useSelector((store) => store.auth);
   useEffect(() => {
+    if (!_access.includes(auth) && !_isSuperadmin) navigate("/");
     if (!_isSuperadmin) navigate("/");
   }, []);
   return (

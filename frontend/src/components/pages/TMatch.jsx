@@ -373,6 +373,9 @@ export const TMatch = () => {
                             <td className="text-end bg-transparent fw-bold">
                               {score.highestScore}
                             </td>
+                            <td className="text-end bg-transparent">
+                              ₹ {score.rewardAmount}
+                            </td>
                           </tr>
                         );
                       })}

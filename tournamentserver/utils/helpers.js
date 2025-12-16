@@ -451,6 +451,7 @@ export const movePlayer = (room, res, colors, io) => {
 
             room.playerInfo[res.color].score += 50;
             room.data[colors[res.color]].players[res.index].score += 50;
+            room.data[colors[res.color]].score += 50;
 
             io.to(room.code).emit("_win", win);
             // //console.log("win");

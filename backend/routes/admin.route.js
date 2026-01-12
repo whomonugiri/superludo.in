@@ -119,13 +119,15 @@ router.route("/fetchGameJson").post(auth, fetchGameJson);
 router.route("/deleteAdmin").post(auth, deleteAdmin);
 router.route("/deleteParam").post(auth, deleteParam);
 router.route("/fetchUserList").post(auth, _fetchChatList);
+
+router.route("/fetchUserOnlineMatches2").post(auth, fetchUserOnlineMatches2);
+router.route("/fetchOnlineMatches2").post(auth, fetchOnlineMatches2);
+router.route("/fetchOnlineMatch2").post(auth, fetchOnlineMatch2);
+
+router.route("/cloneTournament").post(auth, cloneTournament);
 router.route("/addNewTournament").post(auth, addTournament);
 router.route("/fetchTournaments").post(auth, fetchTournaments);
 router.route("/fetchTournament").post(auth, fetchTournament);
 router.route("/endTournament").post(auth, endTournament);
-router.route("/fetchUserOnlineMatches2").post(auth, fetchUserOnlineMatches2);
-router.route("/fetchOnlineMatches2").post(auth, fetchOnlineMatches2);
-router.route("/fetchOnlineMatch2").post(auth, fetchOnlineMatch2);
-router.route("/cloneTournament").post(auth, cloneTournament);
 
 export default router;
